@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>AlephConverter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="jp-matrix"></div>
+
+<!-- ░░░ TITLEBAR PERSONNALISÉE ░░░ -->
+<div class="titlebar">
+    <div class="drag-region"></div>
+
+    <div class="window-controls">
+        <button id="minimize">−</button>
+        <button id="close">×</button>
+    </div>
+</div>
+
+<!-- ░░░ ASCII LOGO ░░░ -->
+<div class="ascii-logo">
+    <pre>
+.+           .+
+-#+          +##
+.###.        .###.
+  +##-         -###.
+    ###.       -#+##
+    #####      -# #-
+  .##  +##+    #+
+  ##-   .###. .#
+ .##.     -###+#
+ .##.       +##+
+ .###.       .###.      ..
+  .###-        -##+   #   +-
+   .###-         ##+ -+   .#
+  .+###-          #+ -+   .#
+                      #   +.
+                       ...
+    </pre>
+</div>
+
+<!-- ░░░ TYPEWRITER ░░░ -->
+<div class="typewriter">ⱯLEPℵ_nu|| CONVERTER</div>
+
+<!-- ░░░ OVERLAY SELECTION DOSSIER ░░░ -->
+<div id="overlay">
+    <div class="overlay-box">
+        <p>Chemin de sortie…</p>
+    </div>
+</div>
+
+<!-- ░░░ OVERLAY TÉLÉCHARGEMENT ░░░ -->
+<div id="overlayDownload">
+    <div class="overlay-box">
+        <div class="loader">
+            <div class="box1"></div>
+            <div class="box2"></div>
+            <div class="box3"></div>
+        </div>
+        <p style="margin-top: 50px">Téléchargement en cours…</p>
+    </div>
+</div>
+
+
+<!-- ░░░ CONTENU ░░░ -->
+<div class="container">
+
+    <h1>
+        Convertisseur
+        <span style="font-style: italic; color: #00ffff; font-size: 14px">.mp3</span>
+        &
+        <span style="font-style: italic; color: #00ffff; font-size: 14px">.mp4</span>
+    </h1>
+
+    <p>(Youtube, Soundcloud, Instagram, Twitch, TikTok, Facebook, ...)</p>
+
+    <input type="text" id="url" autocomplete="off" class="input" placeholder="Coller une URL">
+
+    <label class="switch">
+        <input class="cb" type="checkbox" id="formatSwitch">
+        <span class="toggle">
+            <span class="left">.mp3</span>
+            <span class="right">.mp4</span>
+        </span>
+    </label>
+
+    <button id="download" class="dl">Convertir</button>
+
+    <div class="fx-wrapper">
+        <label class="material-checkbox">
+            <input type="checkbox" id="fxSlow">
+            <span class="checkmark"></span>
+            <span class="fx-text">+ Slowed & Reverb</span>
+        </label>
+    </div>
+</div>
+
+<script src="renderer.js"></script>
+
+<script>
+    const matrix = document.querySelector(".jp-matrix");
+    const chars = "ℵℵℵℵℵℵℵℵℵωκλθψΩ∇∫√";
+
+    const cellSize = 20;
+    const total = Math.floor(window.innerWidth / cellSize) * Math.floor(window.innerHeight / cellSize);
+
+    for (let i = 0; i < total; i++) {
+        const span = document.createElement("span");
+        span.textContent = chars[Math.floor(Math.random() * chars.length)];
+        matrix.appendChild(span);
+    }
+</script>
+
+</body>
+</html>

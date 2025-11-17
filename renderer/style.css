@@ -1,0 +1,842 @@
+@font-face {
+    font-family: 'VT323';
+    src: url('fonts/VT323-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+body {
+    background: #1e1e1e;
+    font-family: "Segoe UI", sans-serif;
+    color: #f2f2f2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+}
+
+.container {
+    background: linear-gradient(180deg, #1c2329, #0f1418);
+    padding: 10px 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    height: 260px;
+    width: 370px;
+    margin-top: 90px;
+}
+
+/* --- Bandeau custom --- */
+
+.titlebar {
+    height: 32px;
+    width: 100%;
+    background: rgba(20,20,20,0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* important */
+    position: relative;
+}
+
+.drag-region {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 70px; /* laisse la place aux boutons */
+    height: 32px;
+    -webkit-app-region: drag;   /* ← OBLIGATOIRE */
+}
+
+
+.window-controls {
+    display: flex;
+    gap: 3px;
+    padding-right: 4px;
+}
+
+
+.window-controls button {
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    color: rgba(0, 255, 255, 0.63);
+    font-size: 25px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    border-radius: 5px;
+    -webkit-app-region: no-drag;
+
+    line-height: 28px;  /* ← CENTRE LE TEXTE VERTICALEMENT */
+    text-align: center; /* ← CENTRE HORIZONTAL */
+}
+
+.window-controls button:hover {
+    background: #444;
+}
+
+#close:hover {
+    background: #00ffff;
+    color: #000000;
+}
+
+/* Logo */
+
+.ascii-logo {
+    position: absolute;
+    top: 45px;       /* juste sous ta titlebar de 32px */
+    left: 25px;     /* collé à droite avec un peu de marge */
+    z-index: 5;      /* au-dessus du background matrix */
+    pointer-events: none; /* clics passent à travers */
+    opacity: 0.8;    /* léger fade */
+}
+
+.ascii-logo pre {
+    font-family: "Courier New", monospace;
+    font-size: 4px;   /* ajuste selon ton goût */
+    line-height: 4px; /* compacité du ASCII */
+    color: #e0e0e0;    /* blanc doux */
+    text-shadow:
+            0 0 4px rgba(0, 200, 255, 0.4),
+            0 0 8px rgba(0, 200, 255, 0.4); /* petit glow */
+    white-space: pre; /* empêche la déformation */
+}
+
+/* Typewriter */
+.typewriter {
+    position: absolute;
+    top: 94px;
+    left: 105px;
+    z-index: 6;
+    line-height: 0.7; /* ajuste pour réaligner le blinker */
+
+    transform: scaleY(0.65); /* ← écrase la hauteur (0.85 = -15%) */
+    transform-origin: left center; /* évite que ça bouge */
+
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.75);
+
+    white-space: nowrap;
+    overflow: hidden;
+
+    width: fit-content; /* ← ajuste automatiquement */
+
+    border-right: 2px solid rgba(255, 255, 255, 0.8);
+
+    animation:
+            typing 4.5s steps(22, end) infinite alternate,
+            blink 0.7s step-end infinite;
+}
+
+@keyframes typing {
+    0% { width: 0ch; }
+    70% { width: 22ch; }   /* texte fini d’écrire */
+    100% { width: 22ch; }  /* PAUSE avant effacement */
+}
+
+
+@keyframes blink {
+    0%, 100% { border-color: transparent; }
+    50% { border-color: rgb(255, 255, 255); }
+}
+
+
+/* --- Titre --- */
+h1, p {
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    align-items: normal;
+    font-size: 17px;
+    font-weight: normal;
+    margin-top: 20px;
+}
+
+p {
+    font-size: 12px;
+    font-weight: lighter;
+    margin-bottom: 30px;
+    font-style: italic;
+    color: #bbffff;
+}
+
+/* From Uiverse.io by Praashoo7 */
+.input {
+    border: none;
+    outline: none;
+    width: 75%;
+    border-radius: 10px;
+    padding: 1em;
+    background-color: #c6c6c6;
+    box-shadow: inset 2px 5px 10px rgba(0,0,0,0.3);
+    transition: 20ms ease-in-out;
+    z-index: 100;
+}
+
+.input:focus {
+    background-color: white;
+}
+
+/* switch */
+/* The switch - the box around the slider */
+.switch {
+    font-size: 12px;
+    position: relative;
+    display: inline-block;
+    width: 5em;
+    height: 2.5em;
+    user-select: none;
+    top: -10px;
+}
+
+/* Hide default HTML checkbox */
+.switch .cb {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider */
+.toggle {
+    position: absolute;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    background-color: #373737;
+    border-radius: 0.1em;
+    transition: 0.4s;
+    font-weight: 700;
+    overflow: hidden;
+    box-shadow: -0.3em 0 0 0 #373737, -0.3em 0.3em 0 0 #373737,
+    0.3em 0 0 0 #373737, 0.3em 0.3em 0 0 #373737, 0 0.3em 0 0 #373737;
+}
+
+.toggle > .left {
+    position: absolute;
+    display: flex;
+    width: 50%;
+    height: 88%;
+    background-color: #f3f3f3;
+    color: #373737;
+    left: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    transform-origin: right;
+    transform: rotateX(10deg);
+    transform-style: preserve-3d;
+    transition: all 150ms;
+}
+
+.left::before {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 100%;
+    background-color: rgb(206, 206, 206);
+    transform-origin: center left;
+    transform: rotateY(90deg);
+}
+
+.left::after {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 100%;
+    background-color: rgb(112, 112, 112);
+    transform-origin: center bottom;
+    transform: rotateX(90deg);
+}
+
+.toggle > .right {
+    position: absolute;
+    display: flex;
+    width: 50%;
+    height: 88%;
+    background-color: #f3f3f3;
+    color: rgb(206, 206, 206);
+    right: 1px;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    transform-origin: left;
+    transform: rotateX(10deg) rotateY(-45deg);
+    transform-style: preserve-3d;
+    transition: all 150ms;
+}
+
+.right::before {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 100%;
+    background-color: rgb(206, 206, 206);
+    transform-origin: center right;
+    transform: rotateY(-90deg);
+}
+
+.right::after {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 100%;
+    background-color: rgb(112, 112, 112);
+    transform-origin: center bottom;
+    transform: rotateX(90deg);
+}
+
+.switch input:checked + .toggle > .left {
+    transform: rotateX(10deg) rotateY(45deg);
+    color: rgb(206, 206, 206);
+}
+
+.switch input:checked + .toggle > .right {
+    transform: rotateX(10deg) rotateY(0deg);
+    color: #487bdb;
+}
+
+/* button */
+
+/* From Uiverse.io by bandirevanth */
+.dl {
+    margin-top: 25px;
+    --hover-shadows: 16px 16px 33px #171e23, -16px -16px 33px #26323a;
+    --accent: #ff6200;
+    font-weight: lighter;
+    letter-spacing: 0.1em;
+    border: none;
+    border-radius: 1.1em;
+    background-color: #2e3b45;
+    cursor: pointer;
+    color: white;
+    padding: 1em 2em;
+    transition: box-shadow ease-in-out 0.1s, background-color ease-in-out 0.1s,
+    letter-spacing ease-in-out 0.1s, transform ease-in-out 0.1s;
+    box-shadow: 13px 13px 10px #131a1e, -13px -13px 10px #171e23;
+}
+
+.dl:hover {
+    box-shadow: var(--hover-shadows);
+}
+
+.dl:active {
+    box-shadow: var(--hover-shadows), var(--accent) 0px 0px 30px 5px;
+    background-color: var(--accent);
+    transform: scale(0.95);
+    transition: 0s;
+}
+
+
+/* MATRIX BACKGROUND */
+.jp-matrix {
+    background-color: #05050a;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20px, 1fr));
+    grid-auto-rows: 20px;
+    font-size: 14px;
+    color: rgba(0, 150, 255, 0.4);
+    font-family: "Courier New", Courier, monospace;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+
+    z-index: -1;
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* --- ANIMATIONS MATRIX --- */
+
+.jp-matrix > span {
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 150, 255, 0.5);
+    user-select: none;
+    transition:
+            color 0.5s,
+            text-shadow 0.5s;
+    line-height: 1;
+}
+
+.jp-matrix > span:nth-child(19n + 2) {
+    animation: smooth-pulse 3.5s ease-in-out infinite 0.2s;
+}
+.jp-matrix > span:nth-child(29n + 1) {
+    animation: smooth-pulse 4.1s ease-in-out infinite 0.7s;
+}
+.jp-matrix > span:nth-child(11n) {
+    color: rgba(100, 200, 255, 0.7);
+    animation: smooth-pulse 2.9s ease-in-out infinite 1.1s;
+}
+.jp-matrix > span:nth-child(37n + 10) {
+    animation: smooth-pulse 5.3s ease-in-out infinite 1.5s;
+}
+.jp-matrix > span:nth-child(41n + 1) {
+    animation: smooth-pulse 3.9s ease-in-out infinite 0.4s;
+}
+.jp-matrix > span:nth-child(17n + 9) {
+    animation: smooth-pulse 2.8s ease-in-out infinite 0.9s;
+}
+.jp-matrix > span:nth-child(23n + 18) {
+    animation: smooth-pulse 4.3s ease-in-out infinite 1.3s;
+}
+.jp-matrix > span:nth-child(31n + 4) {
+    animation: smooth-pulse 5.6s ease-in-out infinite 0.1s;
+}
+.jp-matrix > span:nth-child(43n + 20) {
+    animation: smooth-pulse 3.6s ease-in-out infinite 1.8s;
+}
+.jp-matrix > span:nth-child(13n + 6) {
+    animation: smooth-pulse 3.2s ease-in-out infinite 1.2s;
+}
+.jp-matrix > span:nth-child(53n + 5) {
+    animation: smooth-pulse 4.9s ease-in-out infinite 0.5s;
+}
+.jp-matrix > span:nth-child(47n + 15) {
+    animation: smooth-pulse 5.9s ease-in-out infinite 1s;
+}
+
+@keyframes smooth-pulse {
+    0%, 100% {
+        color: rgba(0, 180, 255, 0.4);
+        text-shadow: 0 0 6px rgba(0, 180, 255, 0.5);
+    }
+    30% {
+        color: rgba(0, 255, 255, 1);
+        text-shadow:
+                0 0 12px rgba(0, 255, 255, 1),
+                0 0 20px rgba(0, 255, 255, 1);
+    }
+    50% {
+        color: rgba(150, 230, 255, 1);
+        text-shadow:
+                0 0 12px rgba(150, 230, 255, 1),
+                0 0 22px rgba(150, 230, 255, 1);
+    }
+    70% {
+        color: #ffffff;
+        text-shadow:
+                0 0 10px #fff,
+                0 0 20px #fff,
+                0 0 30px #fff;
+    }
+}
+
+
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+
+    display: none;
+    opacity: 0;
+
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+
+    background: rgba(0, 0, 0, 0);
+
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+
+    pointer-events: none;
+}
+
+#overlay.show {
+    display: flex;
+    animation: overlayBlurIn 0.45s ease forwards;
+    pointer-events: auto;
+}
+
+@keyframes overlayBlurIn {
+    0% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+        background: rgba(0, 0, 0, 0);
+    }
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        background: rgba(0, 0, 0, 0.89);
+    }
+}
+
+/* --- OVERLAY DL --- */
+.overlay-box {
+    background: rgba(18, 18, 18, 0);
+    padding: 180px 40px;
+    text-align: center;
+    position: relative;
+}
+
+.overlay-box p {
+    color: white;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 16px;
+    font-weight: lighter;
+    font-style: normal;
+    margin: 0;
+}
+
+#overlayDownload {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.51);
+
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9998;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+#overlayDownload.show {
+    display: flex;
+    opacity: 1;
+}
+
+
+/* loader dl */
+.loader {
+    width: 112px;
+    height: 112px;
+    margin: auto;
+    margin-top: -0px;
+}
+
+.box1,
+.box2,
+.box3 {
+    border: 16px solid #9be6dd;
+    box-sizing: border-box;
+    position: absolute;
+    display: block;
+}
+
+.box1 {
+    width: 112px;
+    height: 48px;
+    margin-top: 64px;
+    margin-left: 0px;
+    animation: abox1 2s 1s forwards ease-in-out infinite;
+}
+
+.box2 {
+    width: 48px;
+    height: 48px;
+    margin-top: 0px;
+    margin-left: 0px;
+    animation: abox2 2s 1s forwards ease-in-out infinite;
+}
+
+.box3 {
+    width: 48px;
+    height: 48px;
+    margin-top: 0px;
+    margin-left: 64px;
+    animation: abox3 2s 1s forwards ease-in-out infinite;
+}
+
+@keyframes abox1 {
+    0% {
+        width: 112px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 0px;
+    }
+
+    12.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 0px;
+    }
+
+    25% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 0px;
+    }
+
+    37.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 0px;
+    }
+
+    50% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 0px;
+    }
+
+    62.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 0px;
+    }
+
+    75% {
+        width: 48px;
+        height: 112px;
+        margin-top: 0px;
+        margin-left: 0px;
+    }
+
+    87.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 0px;
+    }
+
+    100% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 0px;
+    }
+}
+
+@keyframes abox2 {
+    0% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 0px;
+    }
+
+    12.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 0px;
+    }
+
+    25% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 0px;
+    }
+
+    37.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 0px;
+    }
+
+    50% {
+        width: 112px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 0px;
+    }
+
+    62.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 64px;
+    }
+
+    75% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 64px;
+    }
+
+    87.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 64px;
+    }
+
+    100% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 64px;
+    }
+}
+
+@keyframes abox3 {
+    0% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 64px;
+    }
+
+    12.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 0px;
+        margin-left: 64px;
+    }
+
+    25% {
+        width: 48px;
+        height: 112px;
+        margin-top: 0px;
+        margin-left: 64px;
+    }
+
+    37.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 64px;
+    }
+
+    50% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 64px;
+    }
+
+    62.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 64px;
+    }
+
+    75% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 64px;
+    }
+
+    87.5% {
+        width: 48px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 64px;
+    }
+
+    100% {
+        width: 112px;
+        height: 48px;
+        margin-top: 64px;
+        margin-left: 0px;
+    }
+}
+
+.loader-scale {
+    transform: scale(0.8); /* ← réduit à 80% */
+    transform-origin: center center;
+}
+
+
+
+/* SLOW & REVERB */
+
+/* Conteneur aligné à droite du bouton */
+.fx-wrapper {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 80px;
+}
+
+/* Checkbox Material */
+.material-checkbox {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #ccc;
+    cursor: pointer;
+    user-select: none;
+}
+
+.material-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Boîte */
+.checkmark {
+    position: relative;
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    margin-right: 10px;
+
+    border: 2px solid #00ffff77;
+    border-radius: 4px;
+    transition: all 0.25s ease;
+}
+
+/* Check cochée */
+.material-checkbox input[type="checkbox"]:checked ~ .checkmark {
+    background-color: #003737;
+    border-color: #00ffff;
+    box-shadow: 0 0 8px #00ffffaa;
+}
+
+/* La petite coche ✓ */
+.material-checkbox input[type="checkbox"]:checked ~ .checkmark:after {
+    content: "";
+    position: absolute;
+    top: 0px;
+    left: 5px;
+    width: 4px;
+    height: 10px;
+    border: solid #00ffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Focus keyboard */
+.material-checkbox input[type="checkbox"]:focus ~ .checkmark {
+    box-shadow: 0 0 0 2px #00ffff55;
+}
+
+/* Hover */
+.material-checkbox:hover .checkmark {
+    border-color: #00ffff;
+    box-shadow: 0 0 6px #00ffff55;
+}
+
+/* Texte */
+.fx-text {
+    font-size: 11px;
+    color: #e0ffffcc;
+}
+
+
+
+
+
+

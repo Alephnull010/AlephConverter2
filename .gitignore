@@ -1,0 +1,23 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build output from electron-builder
+dist/
+out/
+release/
+build/
+
+# Electron binaries
+*.exe
+*.asar.unpacked/
+*.asar
+
+# OS / temp
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
