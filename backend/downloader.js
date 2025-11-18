@@ -2,6 +2,7 @@ const YTDlpWrap = require("yt-dlp-wrap").default;
 const ffmpegStatic = require("ffmpeg-static");
 const path = require("path");
 const fs = require("fs");
+const { app } = require("electron");
 
 // MEME CHEMIN QUE YTDlpManager
 const ytDlpExecutable = path.join(
@@ -11,9 +12,14 @@ const ytDlpExecutable = path.join(
     "yt-dlp.exe"
 );
 
+// Chemin ffmpeg DEV / PROD
+const ffmpegBinary = app.isPackaged
+    ? path.join(process.resourcesPath, "bin", "ffmpeg.exe")
+    : ffmpegStatic;
+
 // Vérif (pour debug)
 if (!fs.existsSync(ytDlpExecutable)) {
-    console.error("❌ yt-dlp introuvable :", ytDlpExecutable);
+    console.error("yt-dlp introuvable :", ytDlpExecutable);
 }
 
 // Instance principale
@@ -26,8 +32,7 @@ function makeSafeTitle(title) {
 
 async function downloadMP3(url, folder) {
     const info = await ytdlp.getVideoInfo(url);
-    const title = info?.title || "Titre inconnu";
-    const safeTitle = makeSafeTitle(title);
+    const safeTitle = makeSafeTitle(info?.title || "Titre inconnu");
 
     const outputPath = path.join(folder, safeTitle + ".mp3");
 
@@ -36,7 +41,7 @@ async function downloadMP3(url, folder) {
         "--extract-audio",
         "--audio-format", "mp3",
         "-o", outputPath,
-        "--ffmpeg-location", ffmpegStatic,
+        "--ffmpeg-location", ffmpegBinary,
         "--no-update"
     ]);
 
@@ -45,8 +50,7 @@ async function downloadMP3(url, folder) {
 
 async function downloadMP4(url, folder) {
     const info = await ytdlp.getVideoInfo(url);
-    const title = info?.title || "Titre inconnu";
-    const safeTitle = makeSafeTitle(title);
+    const safeTitle = makeSafeTitle(info?.title || "Titre inconnu");
 
     const outputPath = path.join(folder, safeTitle + ".mp4");
 
@@ -54,7 +58,7 @@ async function downloadMP4(url, folder) {
         url,
         "-f", "mp4",
         "-o", outputPath,
-        "--ffmpeg-location", ffmpegStatic,
+        "--ffmpeg-location", ffmpegBinary,
         "--no-update"
     ]);
 

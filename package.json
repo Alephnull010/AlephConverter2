@@ -1,6 +1,6 @@
 {
   "name": "alephconverter-2",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "main": "main.js",
   "type": "commonjs",
 
@@ -30,6 +30,13 @@
     "directories": {
       "output": "dist"
     },
+
+    "extraResources": [
+      {
+        "from": "node_modules/ffmpeg-static/ffmpeg.exe",
+        "to": "bin/ffmpeg.exe"
+      }
+    ],
 
     "files": [
       "**/*",
