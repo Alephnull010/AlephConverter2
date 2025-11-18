@@ -101,7 +101,6 @@ async function downloadMP3(url, folder) {
 async function downloadMP4(url, folder) {
     console.log("Téléchargement MP4…");
 
-    // 1) Récupérer le titre
     const info = await ytdlp.getVideoInfo(url);
     const safeTitle = makeSafeTitle(info?.title || "video");
 
@@ -109,17 +108,17 @@ async function downloadMP4(url, folder) {
 
     console.log("nom prévu :", outputPath);
 
-    // 2) Téléchargement
     await ytdlp.exec([
         url,
-        "-f", "mp4",
+        "-f", "bestvideo+bestaudio/best",
         "-o", outputPath,
+        "--merge-output-format", "mp4",
         "--ffmpeg-location", ffmpegBinary,
         "--no-update"
     ]);
 
-    // 3) Vérification réelle
-    let finalFile = findDownloadedFile(folder, ".mp4");
+    // Vérification réelle
+    const finalFile = findDownloadedFile(folder, ".mp4");
 
     if (!finalFile) {
         console.log("Aucun fichier MP4 trouvé après téléchargement !");
@@ -129,5 +128,6 @@ async function downloadMP4(url, folder) {
     console.log("MP4 créé :", finalFile);
     return finalFile;
 }
+
 
 module.exports = { downloadMP3, downloadMP4 };

@@ -8,7 +8,8 @@ const { autoUpdater } = require("electron-updater");
 const { initYtDlp, needsUpdate } = require("./backend/ytDlpManager");
 const { downloadMP3, downloadMP4 } = require("./backend/downloader");
 
-const { applySlowReverb } = require("./backend/audioProcessor");
+const { Worker } = require("worker_threads");
+
 
 // =======================================================
 //  VARIABLES GLOBALES FENETRES
@@ -121,16 +122,36 @@ ipcMain.handle("download", async (event, data) => {
 
     // 2) Si slow+reverb demandé → on traite ce fichier local
     if (slowReverb) {
-        const processedPath = await applySlowReverb(downloadedPath);
-        console.log("[DOWNLOAD] Fichier traité slow+reverb :", processedPath);
 
-        return {
-            success: true,
-            original: downloadedPath,
-            final: processedPath,
-            slowReverb: true
-        };
+        console.log("[WORKER] Traitement slow+reverb…");
+
+        return new Promise((resolve) => {
+            const worker = new Worker(path.join(__dirname, "backend/worker_ffmpeg.js"));
+
+            worker.on("message", (msg) => {
+                if (msg.success) {
+                    console.log("[WORKER] Terminé :", msg.result);
+                    resolve({
+                        success: true,
+                        original: downloadedPath,
+                        final: msg.result,
+                        slowReverb: true
+                    });
+                } else {
+                    console.log("[WORKER] Erreur :", msg.error);
+                    resolve({
+                        success: false,
+                        original: downloadedPath,
+                        final: null,
+                        error: msg.error
+                    });
+                }
+            });
+
+            worker.postMessage(downloadedPath);
+        });
     }
+
 
     // 3) Sinon on renvoie juste le chemin téléchargé
     return {
