@@ -3,40 +3,92 @@ const path = require("path");
 const fs = require("fs");
 const ffmpeg = require("ffmpeg-static");
 
+// -----------------------------------------------------------
+// Fonction debug existence + timings
+// -----------------------------------------------------------
+function checkExists(pathStr, label = "") {
+    const exists = fs.existsSync(pathStr);
+    console.log(`[EXISTS] ${label} → ${exists} — "${pathStr}"`);
+    return exists;
+}
+
+function delayedExists(pathStr) {
+    console.log("Vérifications différées…");
+
+    setTimeout(() => checkExists(pathStr, "Existe à +50ms"), 50);
+    setTimeout(() => checkExists(pathStr, "Existe à +150ms"), 150);
+    setTimeout(() => checkExists(pathStr, "Existe à +300ms"), 300);
+    setTimeout(() => checkExists(pathStr, "Existe à +800ms"), 800);
+}
+
+// -----------------------------------------------------------
+// Dump dossier
+// -----------------------------------------------------------
+function dumpFolder(folder, msg = "DUMP DOSSIER") {
+    try {
+        const list = fs.readdirSync(folder);
+        console.log(`[${msg}]`, list);
+    } catch (err) {
+        console.log("Impossible de lire le dossier :", err);
+    }
+}
+
+// -----------------------------------------------------------
+// Execute FFmpeg avec logs
+// -----------------------------------------------------------
 function runFFmpeg(args) {
+    console.log("FFmpeg args =", args);
+
     return new Promise((resolve, reject) => {
         execFile(ffmpeg, args, (err, stdout, stderr) => {
+            if (stdout) console.log("FFmpeg STDOUT:", stdout.toString());
+            if (stderr) console.log("FFmpeg STDERR:", stderr.toString());
+
             if (err) {
-                console.error("FFmpeg error:", stderr?.toString() || err);
+                console.error("FFmpeg ERROR:", err);
                 return reject(err);
             }
+
             resolve();
         });
     });
 }
 
+// -----------------------------------------------------------
+// APPLY SLOW + REVERB — Avec logs BOOSTÉS
+// -----------------------------------------------------------
 async function applySlowReverb(inputPath) {
+    console.log("\n\n===================== APPLY SLOW + REVERB =====================");
+    console.log("🎯 inputPath =", inputPath);
 
-    if (!fs.existsSync(inputPath)) {
-        console.error("Fichier introuvable :", inputPath);
-        return;
-    }
+    console.log("\n🔍 Vérification immédiate du fichier d'entrée");
+    checkExists(inputPath, "Avant traitement");
+    delayedExists(inputPath);
 
     const dir = path.dirname(inputPath);
     const base = path.basename(inputPath, path.extname(inputPath));
 
+    console.log("\nDossier d'entrée :", dir);
+    dumpFolder(dir, "CONTENU DOSSIER (avant slow)");
+
     const outputPath = path.join(dir, base + " [slow+reverb].mp3");
     const tempPath   = path.join(dir, base + " [slow_tmp].wav");
 
+    console.log("\noutputPath =", outputPath);
+    console.log("tempPath   =", tempPath);
+
     const irPath = path.join(__dirname, "impulse", "Deep Space.wav");
 
-    if (!fs.existsSync(irPath)) {
-        console.error("Impulse Response manquante :", irPath);
+    console.log("\n🎧 irPath =", irPath);
+    checkExists(irPath, "Impulse existe ?");
+
+    if (!fs.existsSync(inputPath)) {
+        console.error("FICHIER D'ENTRÉE INTROUVABLE AU DÉBUT");
         return;
     }
 
     try {
-        console.log("➡️ Étape 1 : Slow + Pitch...");
+        console.log("\n➡Étape 1 : Slow + Pitch…");
 
         const slowFilter =
             "aformat=sample_fmts=s16:sample_rates=44100:channel_layouts=stereo," +
@@ -51,7 +103,11 @@ async function applySlowReverb(inputPath) {
             tempPath
         ]);
 
-        console.log("➡️ Étape 2 : Reverb…");
+        console.log("\nVérif existence tempPath après étape 1");
+        checkExists(tempPath);
+        dumpFolder(dir, "CONTENU DOSSIER (après slow)");
+
+        console.log("\n➡Étape 2 : Reverb…");
 
         const mix = 0.7;
         const preDelayMs = 60;
@@ -74,20 +130,26 @@ async function applySlowReverb(inputPath) {
             outputPath
         ]);
 
-        if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+        console.log("\nVérif existence outputPath après étape 2");
+        checkExists(outputPath);
+        dumpFolder(dir, "CONTENU DOSSIER (après reverb)");
 
-        console.log("🎉 Terminé !");
+        if (fs.existsSync(tempPath)) {
+            console.log("Suppression tempPath:", tempPath);
+            fs.unlinkSync(tempPath);
+        } else {
+            console.log("⚠tempPath déjà inexistant au moment du cleanup");
+        }
+
+        console.log("\nTerminé !");
         console.log("Fichier généré :", outputPath);
 
         return outputPath;
 
     } catch (err) {
-        console.error("❌ Erreur slow+reverb :", err);
+        console.error("ERREUR finale slow+reverb :", err);
         throw err;
     }
 }
 
-// ---------------------
-// EXPORT DE LA FONCTION
-// ---------------------
 module.exports = { applySlowReverb };
