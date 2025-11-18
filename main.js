@@ -122,35 +122,29 @@ ipcMain.handle("download", async (event, data) => {
 
     // 2) Si slow+reverb demandé → on traite ce fichier local
     if (slowReverb) {
+        console.log("[AUDIO] slow+reverb direct…");
 
-        console.log("[WORKER] Traitement slow+reverb…");
+        try {
+            const { applySlowReverb } = require("./backend/audioProcessor.js");
+            const output = await applySlowReverb(downloadedPath);
 
-        return new Promise((resolve) => {
-            const worker = new Worker(path.join(__dirname, "backend/worker_ffmpeg.js"));
-
-            worker.on("message", (msg) => {
-                if (msg.success) {
-                    console.log("[WORKER] Terminé :", msg.result);
-                    resolve({
-                        success: true,
-                        original: downloadedPath,
-                        final: msg.result,
-                        slowReverb: true
-                    });
-                } else {
-                    console.log("[WORKER] Erreur :", msg.error);
-                    resolve({
-                        success: false,
-                        original: downloadedPath,
-                        final: null,
-                        error: msg.error
-                    });
-                }
-            });
-
-            worker.postMessage(downloadedPath);
-        });
+            return {
+                success: true,
+                original: downloadedPath,
+                final: output,
+                slowReverb: true
+            };
+        } catch (err) {
+            console.log("[AUDIO] Erreur slow+reverb :", err);
+            return {
+                success: false,
+                original: downloadedPath,
+                final: null,
+                error: err.message
+            };
+        }
     }
+
 
 
     // 3) Sinon on renvoie juste le chemin téléchargé

@@ -1,6 +1,6 @@
 {
   "name": "alephconverter-2",
-  "version": "1.1.1",
+  "version": "1.2.2",
   "main": "main.js",
   "type": "commonjs",
 
@@ -16,6 +16,10 @@
   },
 
   "build": {
+    "asar": true,
+    "asarUnpack": [
+      "backend/impulse/**"
+    ],
     "appId": "com.alephconverter2.app",
     "productName": "AlephConverter 2",
 
@@ -50,20 +54,13 @@
     },
 
     "nsis": {
-      "include": "build/installer/installer.nsh",
-      "perMachine": false,
       "oneClick": true,
+      "perMachine": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": false,
-      "warningsAsErrors": false,
-      "deleteAppDataOnUninstall": true,
-      "installerLanguages": null,
-      "runAfterFinish": false,
-      "packElevateHelper": false,
-      "removeDefaultUninstallWelcomePage": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "AlephConverter 2"
+      "deleteAppDataOnUninstall": true
     }
   },
 

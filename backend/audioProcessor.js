@@ -1,3 +1,4 @@
+const { app } = require("electron");
 const { execFile } = require("child_process");
 const path = require("path");
 const fs = require("fs");
@@ -59,9 +60,9 @@ function runFFmpeg(args) {
 // -----------------------------------------------------------
 async function applySlowReverb(inputPath) {
     console.log("\n\n===================== APPLY SLOW + REVERB =====================");
-    console.log("🎯 inputPath =", inputPath);
+    console.log(" inputPath =", inputPath);
 
-    console.log("\n🔍 Vérification immédiate du fichier d'entrée");
+    console.log("\n Vérification immédiate du fichier d'entrée");
     checkExists(inputPath, "Avant traitement");
     delayedExists(inputPath);
 
@@ -77,9 +78,12 @@ async function applySlowReverb(inputPath) {
     console.log("\noutputPath =", outputPath);
     console.log("tempPath   =", tempPath);
 
-    const irPath = path.join(__dirname, "impulse", "Deep Space.wav");
+    const irPath = app.isPackaged
+        ? path.join(process.resourcesPath, "app.asar.unpacked", "backend", "impulse", "Deep Space.wav")
+        : path.join(__dirname, "impulse", "Deep Space.wav");
 
-    console.log("\n🎧 irPath =", irPath);
+
+    console.log("\n irPath =", irPath);
     checkExists(irPath, "Impulse existe ?");
 
     if (!fs.existsSync(inputPath)) {

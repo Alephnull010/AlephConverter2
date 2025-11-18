@@ -59,41 +59,69 @@ function findDownloadedFile(folder, expectedExt) {
     return path.join(folder, match);
 }
 
-// -----------------------------------------------------------
-// DOWNLOAD MP3
-// -----------------------------------------------------------
+const { spawn } = require("child_process");
+
 async function downloadMP3(url, folder) {
     console.log("Téléchargement MP3…");
 
-    // 1) Récupérer le titre
-    const info = await ytdlp.getVideoInfo(url);
-    const safeTitle = makeSafeTitle(info?.title || "audio");
+    const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
 
-    const outputPath = path.join(folder, safeTitle + ".mp3");
+    return new Promise((resolve, reject) => {
+        const args = [
+            url,
+            "--no-simulate",
+            "--extract-audio",
+            "--audio-format", "mp3",
+            "--print", "after_move:filepath",
+            "-o", outputTemplate,
+            "--ffmpeg-location", ffmpegBinary,
+            "--no-update"
+        ];
 
-    console.log("Nom prévu :", outputPath);
+        console.log("[YTDLP CMD]", ytDlpExecutable, args);
 
-    // 2) Conversion
-    await ytdlp.exec([
-        url,
-        "--extract-audio",
-        "--audio-format", "mp3",
-        "-o", outputPath,
-        "--ffmpeg-location", ffmpegBinary,
-        "--no-update"
-    ]);
+        const proc = spawn(ytDlpExecutable, args);
 
-    // 3) Vérification réelle : le fichier existe ?
-    let finalFile = findDownloadedFile(folder, ".mp3");
+        let output = "";
 
-    if (!finalFile) {
-        console.log("Aucun fichier MP3 trouvé après téléchargement !");
-        throw new Error("Téléchargement échoué (pas de mp3 généré)");
-    }
+        proc.stdout.on("data", data => {
+            const text = data.toString();
+            console.log("[YTDLP OUT]", text);
+            output += text;
+        });
 
-    console.log("MP3 créé :", finalFile);
-    return finalFile;
+        proc.stderr.on("data", data => {
+            console.log("[YTDLP ERR]", data.toString());
+        });
+
+        proc.on("close", code => {
+            console.log("[YTDLP EXIT]", code);
+
+            if (code !== 0) {
+                return reject(new Error("Échec yt-dlp (exit " + code + ")"));
+            }
+
+            const lines = output.trim().split(/\r?\n/);
+            const finalFile = lines[lines.length - 1].trim();
+
+            console.log("Fichier final retourné par yt-dlp :", finalFile);
+
+            if (!fs.existsSync(finalFile)) {
+                //debug si ça foire encore
+                try {
+                    console.log("Contenu du dossier :", fs.readdirSync(folder));
+                } catch {}
+                return reject(new Error("Téléchargement échoué, fichier introuvable !"));
+            }
+
+            resolve(finalFile);
+        });
+    });
 }
+
+
+
+
 
 // -----------------------------------------------------------
 // DOWNLOAD MP4
@@ -101,33 +129,62 @@ async function downloadMP3(url, folder) {
 async function downloadMP4(url, folder) {
     console.log("Téléchargement MP4…");
 
-    const info = await ytdlp.getVideoInfo(url);
-    const safeTitle = makeSafeTitle(info?.title || "video");
+    const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
+    console.log("Template MP4 :", outputTemplate);
 
-    const outputPath = path.join(folder, safeTitle + ".mp4");
+    return new Promise((resolve, reject) => {
+        const args = [
+            url,
+            "-f", "bestvideo+bestaudio/best",
+            "--merge-output-format", "mp4",
+            "--no-simulate",
+            "--print", "after_move:filepath",  //chemin du fichier FINAL
+            "-o", outputTemplate,
+            "--ffmpeg-location", ffmpegBinary,
+            "--no-update"
+        ];
 
-    console.log("nom prévu :", outputPath);
+        console.log("[YTDLP CMD MP4]", ytDlpExecutable, args);
 
-    await ytdlp.exec([
-        url,
-        "-f", "bestvideo+bestaudio/best",
-        "-o", outputPath,
-        "--merge-output-format", "mp4",
-        "--ffmpeg-location", ffmpegBinary,
-        "--no-update"
-    ]);
+        const proc = spawn(ytDlpExecutable, args);
+        let output = "";
 
-    // Vérification réelle
-    const finalFile = findDownloadedFile(folder, ".mp4");
+        proc.stdout.on("data", data => {
+            const text = data.toString();
+            console.log("[YTDLP OUT MP4]", text);
+            output += text;
+        });
 
-    if (!finalFile) {
-        console.log("Aucun fichier MP4 trouvé après téléchargement !");
-        throw new Error("Téléchargement échoué (pas de mp4 généré)");
-    }
+        proc.stderr.on("data", data => {
+            console.log("[YTDLP ERR MP4]", data.toString());
+        });
 
-    console.log("MP4 créé :", finalFile);
-    return finalFile;
+        proc.on("close", code => {
+            console.log("[YTDLP EXIT MP4]", code);
+
+            if (code !== 0) {
+                return reject(new Error("Échec yt-dlp MP4 (exit " + code + ")"));
+            }
+
+            const lines = output.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
+            const finalFile = lines[lines.length - 1]?.trim();
+
+            console.log("Fichier MP4 final retourné par yt-dlp :", finalFile);
+
+            if (!finalFile || !fs.existsSync(finalFile)) {
+                try {
+                    console.log("Contenu du dossier MP4 :", fs.readdirSync(folder));
+                } catch (e) {
+                    console.log("Impossible de lister le dossier MP4 :", e);
+                }
+                return reject(new Error("Téléchargement échoué (pas de mp4 généré)"));
+            }
+
+            resolve(finalFile);
+        });
+    });
 }
+
 
 
 module.exports = { downloadMP3, downloadMP4 };
