@@ -1,6 +1,6 @@
 {
   "name": "alephconverter-2",
-  "version": "1.2.0",
+  "version": "1.0.2",
   "main": "main.js",
   "type": "commonjs",
 
@@ -12,7 +12,7 @@
 
   "repository": {
     "type": "git",
-    "url": "https://github.com/Alephnull010/AlephConverter.git"
+    "url": "https://github.com/Alephnull010/AlephConverter2.git"
   },
 
   "build": {
@@ -23,7 +23,7 @@
       {
         "provider": "github",
         "owner": "Alephnull010",
-        "repo": "AlephConverter"
+        "repo": "AlephConverter2"
       }
     ],
 
@@ -45,9 +45,9 @@
     "nsis": {
       "include": "build/installer/installer.nsh",
       "perMachine": false,
-      "oneClick": false,
-      "allowElevation": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": false,
       "warningsAsErrors": false,
       "deleteAppDataOnUninstall": true,
       "installerLanguages": null,

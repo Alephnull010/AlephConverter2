@@ -151,10 +151,46 @@ ipcMain.on("window-control", (event, action) => {
 // =======================================================
 //  SPLASH POUR MAJ YT-DLP
 // =======================================================
+function hasInternet() {
+    return new Promise(resolve => {
+        require("dns").lookup("github.com", err => {
+            resolve(!err);
+        });
+    });
+}
+
 async function updateYtDlpWithSplash() {
 
     console.log("[YT-DLP] Vérification…");
 
+    const hasLocal = fs.existsSync(path.join(process.env.LOCALAPPDATA, "AlephConverter", "bin", "yt-dlp.exe"));
+    const online = await hasInternet();
+
+    // Cas critique : PAS internet + PAS de yt-dlp → on affiche une erreur visible
+    if (!online && !hasLocal) {
+        console.log("[YT-DLP] Pas d'internet et aucun yt-dlp → impossible de continuer.");
+
+        if (mainWin) {
+            mainWin.close();
+            mainWin = null;
+        }
+        if (updateWin) {
+            updateWin.close();
+            updateWin = null;
+        }
+
+        createUpdateWindow();
+        sendUpdateText("Pas de connexion internet.\nImpossible d'installer yt-dlp.");
+        return;
+    }
+
+    // Cas : pas internet mais yt-dlp présent → tout va bien, on skip
+    if (!online && hasLocal) {
+        console.log("[YT-DLP] Pas d'internet, mais version locale présente → skip update.");
+        return;
+    }
+
+    // Cas normal : internet disponible → on continue
     const need = await needsUpdate();
     if (!need) {
         console.log("[YT-DLP] Pas de mise à jour nécessaire.");
@@ -163,13 +199,10 @@ async function updateYtDlpWithSplash() {
 
     console.log("[YT-DLP] Mise à jour requise → splash");
 
-    // Fermer la fenêtre principale si ouverte
     if (mainWin) {
         mainWin.close();
         mainWin = null;
     }
-
-    // Fermer un éventuel ancien splash
     if (updateWin) {
         updateWin.close();
         updateWin = null;
@@ -194,6 +227,7 @@ async function updateYtDlpWithSplash() {
 
     safeCreateMainWindow();
 }
+
 
 
 // =======================================================
