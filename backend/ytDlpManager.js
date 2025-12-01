@@ -37,7 +37,7 @@ async function getLatestVersion(updateCallback = () => {}) {
 async function initYtDlp(updateCallback = () => {}) {
 
     const log = (msg) => {
-        console.log("💬", msg);
+        console.log("YTDLP", msg);
         updateCallback(msg);
     };
 

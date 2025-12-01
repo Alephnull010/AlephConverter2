@@ -798,14 +798,12 @@ p {
     transition: all 0.25s ease;
 }
 
-/* Check cochée */
 .material-checkbox input[type="checkbox"]:checked ~ .checkmark {
     background-color: #003737;
     border-color: #00ffff;
     box-shadow: 0 0 8px #00ffffaa;
 }
 
-/* La petite coche ✓ */
 .material-checkbox input[type="checkbox"]:checked ~ .checkmark:after {
     content: "";
     position: absolute;
@@ -818,18 +816,15 @@ p {
     transform: rotate(45deg);
 }
 
-/* Focus keyboard */
 .material-checkbox input[type="checkbox"]:focus ~ .checkmark {
     box-shadow: 0 0 0 2px #00ffff55;
 }
 
-/* Hover */
 .material-checkbox:hover .checkmark {
     border-color: #00ffff;
     box-shadow: 0 0 6px #00ffff55;
 }
 
-/* Texte */
 .fx-text {
     font-size: 11px;
     color: #e0ffffcc;
