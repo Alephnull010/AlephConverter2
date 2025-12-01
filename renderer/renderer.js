@@ -6,7 +6,7 @@ const switchFormat = document.getElementById("formatSwitch");
 const textStatus = document.getElementById("status");
 const overlay = document.getElementById("overlay");
 const overlayDownload = document.getElementById("overlayDownload");
-const fxSlow = document.getElementById("fxSlow");   // ⬅️ AJOUTÉ
+const fxSlow = document.getElementById("fxSlow");
 
 btnDownload.onclick = async () => {
     const url = inputUrl.value.trim();

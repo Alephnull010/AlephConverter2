@@ -1,11 +1,12 @@
-const YTDlpWrap = require("yt-dlp-wrap").default;
-const ffmpegStatic = require("ffmpeg-static");
+const { spawn } = require("child_process");
+const { app } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const { app } = require("electron");
+const YTDlpWrap = require("yt-dlp-wrap").default;
+const ffmpegStatic = require("ffmpeg-static");
 
 // -----------------------------------------------------------
-// Chemin YT-DLP local
+// Chemins YT-DLP + FFmpeg
 // -----------------------------------------------------------
 const ytDlpExecutable = path.join(
     process.env.LOCALAPPDATA,
@@ -14,104 +15,78 @@ const ytDlpExecutable = path.join(
     "yt-dlp.exe"
 );
 
-// -----------------------------------------------------------
-// Chemin FFmpeg DEV / PROD (important !)
-// -----------------------------------------------------------
 let ffmpegBinary;
-
 if (app.isPackaged) {
-    // PROD → ffmpeg packagé
     ffmpegBinary = path.join(process.resourcesPath, "bin", "ffmpeg.exe");
 } else {
-    // DEV → ffmpeg-static
     ffmpegBinary = ffmpegStatic;
 }
 
-// IMPORTANT : remplacer les backslashes par des slashes
-// yt-dlp a des soucis avec \ dans --ffmpeg-location
+// yt-dlp préfère les slashes
 ffmpegBinary = ffmpegBinary.replace(/\\/g, "/");
 
-console.log("FFmpeg utilisé =", ffmpegBinary);
-console.log("yt-dlp utilisé =", ytDlpExecutable);
+console.log("FFmpeg utilisé :", ffmpegBinary);
+console.log("yt-dlp utilisé :", ytDlpExecutable);
+
 
 // -----------------------------------------------------------
-// Initialisation yt-dlp
+// Utilitaire : vérifie existence fichier final
 // -----------------------------------------------------------
-const ytdlp = new YTDlpWrap(ytDlpExecutable);
-
-// -----------------------------------------------------------
-// Nettoyeur de titre
-// -----------------------------------------------------------
-function makeSafeTitle(title) {
-    if (!title) return "Titre_inconnu";
-    return title.replace(/[\/\\:*?"<>|]/g, "_").trim();
+function ensureFileExists(filepath) {
+    if (!filepath) return false;
+    return fs.existsSync(filepath);
 }
 
+
 // -----------------------------------------------------------
-// Vérifie si yt-dlp a vraiment généré le fichier final
+// TELECHARGEMENT MP3
 // -----------------------------------------------------------
-function findDownloadedFile(folder, expectedExt) {
-    const files = fs.readdirSync(folder);
-    const match = files.find(f => f.toLowerCase().endsWith(expectedExt));
-
-    if (!match) return null;
-
-    return path.join(folder, match);
-}
-
-const { spawn } = require("child_process");
-
 async function downloadMP3(url, folder) {
     console.log("Téléchargement MP3…");
 
     const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
 
     return new Promise((resolve, reject) => {
+
         const args = [
             url,
-            "--no-simulate",
             "--extract-audio",
             "--audio-format", "mp3",
-            "--print", "after_move:filepath",
+            "--no-simulate",
+            "--print", "after_move:filepath",   // ← LE VRAI CHEMIN FINAL
             "-o", outputTemplate,
             "--ffmpeg-location", ffmpegBinary,
             "--no-update"
         ];
 
-        console.log("[YTDLP CMD]", ytDlpExecutable, args);
+        console.log("[YTDLP CMD MP3]", ytDlpExecutable, args);
 
         const proc = spawn(ytDlpExecutable, args);
-
         let output = "";
 
         proc.stdout.on("data", data => {
             const text = data.toString();
-            console.log("[YTDLP OUT]", text);
+            console.log("[YTDLP OUT MP3]", text);
             output += text;
         });
 
         proc.stderr.on("data", data => {
-            console.log("[YTDLP ERR]", data.toString());
+            console.log("[YTDLP ERR MP3]", data.toString());
         });
 
         proc.on("close", code => {
-            console.log("[YTDLP EXIT]", code);
+            console.log("[YTDLP EXIT MP3]", code);
 
             if (code !== 0) {
-                return reject(new Error("Échec yt-dlp (exit " + code + ")"));
+                return reject(new Error("Échec yt-dlp MP3 (exit " + code + ")"));
             }
 
-            const lines = output.trim().split(/\r?\n/);
-            const finalFile = lines[lines.length - 1].trim();
+            const finalFile = output.trim().replace(/"/g, "");
+            console.log("[MP3 FINAL] →", finalFile);
 
-            console.log("Fichier final retourné par yt-dlp :", finalFile);
-
-            if (!fs.existsSync(finalFile)) {
-                //debug si ça foire encore
-                try {
-                    console.log("Contenu du dossier :", fs.readdirSync(folder));
-                } catch {}
-                return reject(new Error("Téléchargement échoué, fichier introuvable !"));
+            if (!ensureFileExists(finalFile)) {
+                console.log("Contenu dossier MP3 :", fs.readdirSync(folder));
+                return reject(new Error("Téléchargement MP3 échoué (fichier introuvable)"));
             }
 
             resolve(finalFile);
@@ -121,24 +96,22 @@ async function downloadMP3(url, folder) {
 
 
 
-
-
 // -----------------------------------------------------------
-// DOWNLOAD MP4
+// TELECHARGEMENT MP4
 // -----------------------------------------------------------
 async function downloadMP4(url, folder) {
     console.log("Téléchargement MP4…");
 
     const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
-    console.log("Template MP4 :", outputTemplate);
 
     return new Promise((resolve, reject) => {
+
         const args = [
             url,
             "-f", "bestvideo+bestaudio/best",
             "--merge-output-format", "mp4",
             "--no-simulate",
-            "--print", "after_move:filepath",  //chemin du fichier FINAL
+            "--print", "after_move:filepath",   // ← chemin final garanti
             "-o", outputTemplate,
             "--ffmpeg-location", ffmpegBinary,
             "--no-update"
@@ -166,18 +139,16 @@ async function downloadMP4(url, folder) {
                 return reject(new Error("Échec yt-dlp MP4 (exit " + code + ")"));
             }
 
-            const lines = output.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
-            const finalFile = lines[lines.length - 1]?.trim();
+            const finalFile = output.trim().replace(/"/g, "");
+            console.log("[MP4 FINAL] →", finalFile);
 
-            console.log("Fichier MP4 final retourné par yt-dlp :", finalFile);
-
-            if (!finalFile || !fs.existsSync(finalFile)) {
+            if (!ensureFileExists(finalFile)) {
                 try {
-                    console.log("Contenu du dossier MP4 :", fs.readdirSync(folder));
+                    console.log("Contenu dossier MP4 :", fs.readdirSync(folder));
                 } catch (e) {
-                    console.log("Impossible de lister le dossier MP4 :", e);
+                    console.log("Impossible de lister dossier MP4 :", e);
                 }
-                return reject(new Error("Téléchargement échoué (pas de mp4 généré)"));
+                return reject(new Error("Téléchargement MP4 échoué (fichier introuvable)"));
             }
 
             resolve(finalFile);
@@ -187,4 +158,8 @@ async function downloadMP4(url, folder) {
 
 
 
-module.exports = { downloadMP3, downloadMP4 };
+// -----------------------------------------------------------
+module.exports = {
+    downloadMP3,
+    downloadMP4
+};
