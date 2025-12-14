@@ -32,19 +32,17 @@
         /* From Uiverse.io by satyamchaudharydev */
         .spinner {
             position: relative;
-            width: 60px;
+            width: 160px; /* largeur fixe suffisante */
             height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-
+            margin: 0 auto;
         }
+
 
         .spinner span {
             position: absolute;
             top: 50%;
-            left: var(--left);
+            left: 50%;
+            transform: translateX(calc(var(--offset) * 1px));
             width: 35px;
             height: 7px;
             background: #ffff;
@@ -52,44 +50,14 @@
             box-shadow: 2px 2px 3px 0px black;
         }
 
-        .spinner span:nth-child(1) {
-            --left: 80px;
-            animation-delay: 0.125s;
-        }
-
-        .spinner span:nth-child(2) {
-            --left: 70px;
-            animation-delay: 0.3s;
-        }
-
-        .spinner span:nth-child(3) {
-            left: 60px;
-            animation-delay: 0.425s;
-        }
-
-        .spinner span:nth-child(4) {
-            animation-delay: 0.54s;
-            left: 50px;
-        }
-
-        .spinner span:nth-child(5) {
-            animation-delay: 0.665s;
-            left: 40px;
-        }
-
-        .spinner span:nth-child(6) {
-            animation-delay: 0.79s;
-            left: 30px;
-        }
-
-        .spinner span:nth-child(7) {
-            animation-delay: 0.915s;
-            left: 20px;
-        }
-
-        .spinner span:nth-child(8) {
-            left: 10px;
-        }
+        .spinner span:nth-child(1) { --offset: 40;  animation-delay: 0.125s; }
+        .spinner span:nth-child(2) { --offset: 30;  animation-delay: 0.3s; }
+        .spinner span:nth-child(3) { --offset: 20;  animation-delay: 0.425s; }
+        .spinner span:nth-child(4) { --offset: 10;  animation-delay: 0.54s; }
+        .spinner span:nth-child(5) { --offset: 0;   animation-delay: 0.665s; }
+        .spinner span:nth-child(6) { --offset: -10; animation-delay: 0.79s; }
+        .spinner span:nth-child(7) { --offset: -20; animation-delay: 0.915s; }
+        .spinner span:nth-child(8) { --offset: -30; }
 
         @keyframes dominos {
             50% {

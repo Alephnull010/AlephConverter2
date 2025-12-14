@@ -43,6 +43,5 @@ btnDownload.onclick = async () => {
 };
 
 
-
 btnMinimize.onclick = () => window.api.windowControl("minimize");
 btnClose.onclick = () => window.api.windowControl("close");

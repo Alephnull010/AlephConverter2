@@ -53,7 +53,6 @@ async function downloadMP3(url, folder) {
             "--extract-audio",
             "--audio-format", "mp3",
             "--no-simulate",
-            "--print", "after_move:filepath",   // ← LE VRAI CHEMIN FINAL
             "-o", outputTemplate,
             "--ffmpeg-location", ffmpegBinary,
             "--no-update"
@@ -62,17 +61,10 @@ async function downloadMP3(url, folder) {
         console.log("[YTDLP CMD MP3]", ytDlpExecutable, args);
 
         const proc = spawn(ytDlpExecutable, args);
-        let output = "";
 
-        proc.stdout.on("data", data => {
-            const text = data.toString();
-            console.log("[YTDLP OUT MP3]", text);
-            output += text;
-        });
-
-        proc.stderr.on("data", data => {
-            console.log("[YTDLP ERR MP3]", data.toString());
-        });
+        proc.stderr.on("data", d =>
+            console.log("[YTDLP ERR MP3]", d.toString())
+        );
 
         proc.on("close", code => {
             console.log("[YTDLP EXIT MP3]", code);
@@ -81,18 +73,28 @@ async function downloadMP3(url, folder) {
                 return reject(new Error("Échec yt-dlp MP3 (exit " + code + ")"));
             }
 
-            const finalFile = output.trim().replace(/"/g, "");
-            console.log("[MP3 FINAL] →", finalFile);
+            const files = fs.readdirSync(folder)
+                .filter(f => f.toLowerCase().endsWith(".mp3"));
 
-            if (!ensureFileExists(finalFile)) {
-                console.log("Contenu dossier MP3 :", fs.readdirSync(folder));
-                return reject(new Error("Téléchargement MP3 échoué (fichier introuvable)"));
+            if (files.length === 0) {
+                return reject(new Error("Téléchargement MP3 échoué (aucun MP3 trouvé)"));
             }
 
+            const latestFile = files
+                .map(f => ({
+                    name: f,
+                    time: fs.statSync(path.join(folder, f)).mtimeMs
+                }))
+                .sort((a, b) => b.time - a.time)[0].name;
+
+            const finalFile = path.join(folder, latestFile);
+
+            console.log("[MP3 FINAL OK] →", finalFile);
             resolve(finalFile);
         });
     });
 }
+
 
 
 
@@ -111,7 +113,6 @@ async function downloadMP4(url, folder) {
             "-f", "bestvideo+bestaudio/best",
             "--merge-output-format", "mp4",
             "--no-simulate",
-            "--print", "after_move:filepath",   // ← chemin final garanti
             "-o", outputTemplate,
             "--ffmpeg-location", ffmpegBinary,
             "--no-update"
@@ -120,17 +121,10 @@ async function downloadMP4(url, folder) {
         console.log("[YTDLP CMD MP4]", ytDlpExecutable, args);
 
         const proc = spawn(ytDlpExecutable, args);
-        let output = "";
 
-        proc.stdout.on("data", data => {
-            const text = data.toString();
-            console.log("[YTDLP OUT MP4]", text);
-            output += text;
-        });
-
-        proc.stderr.on("data", data => {
-            console.log("[YTDLP ERR MP4]", data.toString());
-        });
+        proc.stderr.on("data", d =>
+            console.log("[YTDLP ERR MP4]", d.toString())
+        );
 
         proc.on("close", code => {
             console.log("[YTDLP EXIT MP4]", code);
@@ -139,22 +133,28 @@ async function downloadMP4(url, folder) {
                 return reject(new Error("Échec yt-dlp MP4 (exit " + code + ")"));
             }
 
-            const finalFile = output.trim().replace(/"/g, "");
-            console.log("[MP4 FINAL] →", finalFile);
+            const files = fs.readdirSync(folder)
+                .filter(f => f.toLowerCase().endsWith(".mp4"));
 
-            if (!ensureFileExists(finalFile)) {
-                try {
-                    console.log("Contenu dossier MP4 :", fs.readdirSync(folder));
-                } catch (e) {
-                    console.log("Impossible de lister dossier MP4 :", e);
-                }
-                return reject(new Error("Téléchargement MP4 échoué (fichier introuvable)"));
+            if (files.length === 0) {
+                return reject(new Error("Téléchargement MP4 échoué (aucun MP4 trouvé)"));
             }
 
+            const latestFile = files
+                .map(f => ({
+                    name: f,
+                    time: fs.statSync(path.join(folder, f)).mtimeMs
+                }))
+                .sort((a, b) => b.time - a.time)[0].name;
+
+            const finalFile = path.join(folder, latestFile);
+
+            console.log("[MP4 FINAL OK] →", finalFile);
             resolve(finalFile);
         });
     });
 }
+
 
 
 
