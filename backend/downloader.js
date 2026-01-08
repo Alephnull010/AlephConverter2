@@ -52,6 +52,7 @@ async function downloadMP3(url, folder) {
             url,
             "--extract-audio",
             "--audio-format", "mp3",
+            "--audio-quality", "0",
             "--no-simulate",
             "-o", outputTemplate,
             "--ffmpeg-location", ffmpegBinary,

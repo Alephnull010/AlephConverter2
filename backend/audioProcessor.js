@@ -96,7 +96,7 @@ async function applySlowReverb(inputPath) {
 
         const slowFilter =
             "aformat=sample_fmts=s16:sample_rates=44100:channel_layouts=stereo," +
-            "asetrate=44100*0.8,aresample=44100,atempo=0.92";
+            "asetrate=44100*0.9,aresample=44100,atempo=0.95";
 
         await runFFmpeg([
             "-y",
