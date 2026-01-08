@@ -13,6 +13,7 @@ The application is intentionally minimalist, focusing on simplicity and ease of 
 
 ## Features
 
+- Best possible ffmpeg audio conversion quality (MP3 320 kbps)
 - Convert URLs into **MP3 audio files**
 - Convert URLs into **MP4 video files**
 - Full **playlist conversion** using a playlist URL
@@ -38,3 +39,4 @@ Built using:
 <p align="center">
   <img src="https://github.com/user-attachments/assets/8717da64-3fcd-4bbd-9ab7-098eb6035b0b" width="50%" alt="AlephConverter2 interface">
 </p>
+
