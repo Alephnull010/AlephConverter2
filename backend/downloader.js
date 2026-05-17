@@ -42,7 +42,7 @@ function ensureFileExists(filepath) {
 // TELECHARGEMENT MP3
 // -----------------------------------------------------------
 async function downloadMP3(url, folder) {
-    console.log("Téléchargement MP3…");
+    console.log("Downloading MP3…");
 
     const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
 
@@ -78,7 +78,7 @@ async function downloadMP3(url, folder) {
                 .filter(f => f.toLowerCase().endsWith(".mp3"));
 
             if (files.length === 0) {
-                return reject(new Error("Téléchargement MP3 échoué (aucun MP3 trouvé)"));
+                return reject(new Error("Downloading failed... no .mp3 has been found"));
             }
 
             const latestFile = files
@@ -103,7 +103,7 @@ async function downloadMP3(url, folder) {
 // TELECHARGEMENT MP4
 // -----------------------------------------------------------
 async function downloadMP4(url, folder) {
-    console.log("Téléchargement MP4…");
+    console.log("Downloading MP4…");
 
     const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
 
@@ -138,7 +138,7 @@ async function downloadMP4(url, folder) {
                 .filter(f => f.toLowerCase().endsWith(".mp4"));
 
             if (files.length === 0) {
-                return reject(new Error("Téléchargement MP4 échoué (aucun MP4 trouvé)"));
+                return reject(new Error("Downloading MP4 failed (no MP4 has been found)"));
             }
 
             const latestFile = files

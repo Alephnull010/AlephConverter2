@@ -126,7 +126,7 @@ ipcMain.handle("download", async (event, data) => {
 
         try {
             const { applySlowReverb } = require("./backend/audioProcessor.js");
-            const output = await applySlowReverb(downloadedPath);
+            const output = await applySlowReverb(downloadedPath, slowReverb);
 
             return {
                 success: true,
@@ -290,7 +290,7 @@ async function launchSequence() {
     autoUpdater.on("download-progress", (progress) => {
         const percent = Math.round(progress.percent);
         console.log("[AUTOUPDATE] Progress :", percent + "%");
-        sendUpdateText(`Téléchargement : ${percent}%`);
+        sendUpdateText(`Downloading : ${percent}%`);
     });
 
     autoUpdater.on("update-downloaded", () => {

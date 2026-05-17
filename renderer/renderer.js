@@ -6,7 +6,12 @@ const switchFormat = document.getElementById("formatSwitch");
 const textStatus = document.getElementById("status");
 const overlay = document.getElementById("overlay");
 const overlayDownload = document.getElementById("overlayDownload");
-const fxSlow = document.getElementById("fxSlow");
+const fxSlow   = document.getElementById("fxSlow");
+const fxPreset = document.getElementById("fxPreset");
+
+fxSlow.addEventListener("change", () => {
+    fxPreset.classList.toggle("visible", fxSlow.checked);
+});
 
 btnDownload.onclick = async () => {
     const url = inputUrl.value.trim();
@@ -26,15 +31,16 @@ btnDownload.onclick = async () => {
     overlayDownload.querySelector("p").innerText = "Téléchargement…";
     overlayDownload.classList.add("show");
 
-    const slow = fxSlow.checked;
+    // slowReverb = nom du preset (string) si coché, null sinon
+    const slowReverb = fxSlow.checked ? fxPreset.value : null;
     const format = switchFormat.checked ? "mp4" : "mp3";
 
     let result;
 
     if (format === "mp3") {
-        result = await window.api.downloadMP3(url, folder, slow);
+        result = await window.api.downloadMP3(url, folder, slowReverb);
     } else {
-        result = await window.api.downloadMP4(url, folder, slow);
+        result = await window.api.downloadMP4(url, folder, slowReverb);
     }
 
     // === FIN ===

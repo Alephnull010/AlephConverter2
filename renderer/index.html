@@ -79,14 +79,22 @@
         </span>
     </label>
 
-    <button id="download" class="dl">Convert</button>
+    <div class="action-row">
+        <button id="download" class="dl">Convert</button>
 
-    <div class="fx-wrapper">
-        <label class="material-checkbox">
-            <input type="checkbox" id="fxSlow">
-            <span class="checkmark"></span>
-            <span class="fx-text">+ Slowed & Reverb</span>
-        </label>
+        <div class="fx-wrapper">
+            <label class="material-checkbox">
+                <input type="checkbox" id="fxSlow">
+                <span class="checkmark"></span>
+                <span class="fx-text">+ Slowed & Reverb</span>
+            </label>
+            <select id="fxPreset" class="fx-preset">
+                <option value="warm">warm</option>
+                <option value="dreamy">dreamy</option>
+                <option value="elegant">elegant</option>
+                <option value="liquid">liquid</option>
+            </select>
+        </div>
     </div>
 </div>
 

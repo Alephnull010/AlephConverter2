@@ -306,7 +306,7 @@ p {
 
 /* From Uiverse.io by bandirevanth */
 .dl {
-    margin-top: 25px;
+    margin-top: 0;
     --hover-shadows: 16px 16px 33px #171e23, -16px -16px 33px #26323a;
     --accent: #ff6200;
     font-weight: lighter;
@@ -761,11 +761,16 @@ p {
 
 /* SLOW & REVERB */
 
-/* Conteneur aligné à droite du bouton */
+.action-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
 .fx-wrapper {
     display: inline-flex;
     align-items: center;
-    margin-left: 80px;
 }
 
 /* Checkbox Material */
@@ -828,6 +833,32 @@ p {
 .fx-text {
     font-size: 11px;
     color: #e0ffffcc;
+}
+
+.fx-preset {
+    margin-left: 10px;
+    background: #0a1015;
+    border: 1px solid #00ffff55;
+    border-radius: 4px;
+    color: #e0ffffcc;
+    font-size: 11px;
+    padding: 2px 6px;
+    cursor: pointer;
+    outline: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.fx-preset.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.fx-preset:hover,
+.fx-preset:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 6px #00ffff44;
 }
 
 

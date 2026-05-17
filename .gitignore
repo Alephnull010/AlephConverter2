@@ -21,3 +21,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.log
+
+# Debug sandbox
+debug/
