@@ -23,12 +23,12 @@ btnDownload.onclick = async () => {
     overlay.classList.remove("show");
 
     if (!folder) {
-        textStatus.innerText = "Sélection annulée.";
+        textStatus.innerText = "Selection cancelled.";
         return;
     }
 
     // === Overlay téléchargement ===
-    overlayDownload.querySelector("p").innerText = "Téléchargement…";
+    overlayDownload.querySelector("p").innerText = "Downloading…";
     overlayDownload.classList.add("show");
 
     // slowReverb = nom du preset (string) si coché, null sinon

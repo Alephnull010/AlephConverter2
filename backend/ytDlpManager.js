@@ -13,7 +13,7 @@ const VERSION_FILE = path.join(CACHE_DIR, "version.txt");
 async function getLatestVersion(updateCallback = () => {}) {
     const url = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest";
 
-    updateCallback("Vérification de la version...");
+    updateCallback("Checking for updates...");
 
     return new Promise((resolve, reject) => {
         https.get(url, { headers: { "User-Agent": "AlephConverter" } }, res => {
@@ -41,10 +41,10 @@ async function initYtDlp(updateCallback = () => {}) {
         updateCallback(msg);
     };
 
-    log("Initialisation de yt-dlp…");
+    log("Initializing yt-dlp…");
 
     if (!fs.existsSync(CACHE_DIR)) {
-        log("Création du dossier local…");
+        log("Creating local folder…");
         fs.mkdirSync(CACHE_DIR, { recursive: true });
     }
 
@@ -52,23 +52,23 @@ async function initYtDlp(updateCallback = () => {}) {
         ? fs.readFileSync(VERSION_FILE, "utf8").trim()
         : null;
 
-    log("Version locale : " + (localVersion || "aucune"));
+    log("Local version: " + (localVersion || "none"));
 
     const latestVersion = await getLatestVersion(log);
-    log("Version distante : " + latestVersion);
+    log("Remote version: " + latestVersion);
 
     if (fs.existsSync(CACHED_EXE) && localVersion === latestVersion) {
-        log("yt-dlp déjà à jour ✓");
+        log("yt-dlp already up to date ✓");
         return CACHED_EXE;
     }
 
-    log("Téléchargement de yt-dlp…");
+    log("Downloading yt-dlp…");
     const downloaded = await YTDlpWrap.downloadFromGithub(CACHED_EXE);
 
-    log("Téléchargement terminé ✓");
+    log("Download complete ✓");
 
     fs.writeFileSync(VERSION_FILE, latestVersion);
-    log("yt-dlp mis à jour ✓");
+    log("yt-dlp updated ✓");
 
     return downloaded;
 }

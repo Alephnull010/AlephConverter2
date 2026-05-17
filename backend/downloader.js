@@ -75,7 +75,8 @@ async function downloadMP3(url, folder) {
             }
 
             const files = fs.readdirSync(folder)
-                .filter(f => f.toLowerCase().endsWith(".mp3"));
+                .filter(f => f.toLowerCase().endsWith(".mp3"))
+                .filter(f => !f.includes("[slow+reverb"));
 
             if (files.length === 0) {
                 return reject(new Error("Downloading failed... no .mp3 has been found"));
@@ -135,7 +136,8 @@ async function downloadMP4(url, folder) {
             }
 
             const files = fs.readdirSync(folder)
-                .filter(f => f.toLowerCase().endsWith(".mp4"));
+                .filter(f => f.toLowerCase().endsWith(".mp4"))
+                .filter(f => !f.includes("[slow+reverb"));
 
             if (files.length === 0) {
                 return reject(new Error("Downloading MP4 failed (no MP4 has been found)"));

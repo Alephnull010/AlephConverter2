@@ -195,7 +195,7 @@ async function updateYtDlpWithSplash() {
         }
 
         createUpdateWindow();
-        sendUpdateText("Pas de connexion internet.\nImpossible d'installer yt-dlp.");
+        sendUpdateText("No internet connection.\nUnable to install yt-dlp.");
         return;
     }
 
@@ -224,14 +224,14 @@ async function updateYtDlpWithSplash() {
     }
 
     createUpdateWindow();
-    sendUpdateText("Mise à jour de yt-dlp…");
+    sendUpdateText("Updating yt-dlp…");
 
     try {
         await initYtDlp(sendUpdateText);
-        sendUpdateText("yt-dlp mis à jour ✓");
+        sendUpdateText("yt-dlp updated ✓");
     } catch (err) {
         console.log("[YT-DLP] Erreur :", err);
-        sendUpdateText("Erreur YT-DLP : " + err.message);
+        sendUpdateText("YT-DLP Error: " + err.message);
         await new Promise(r => setTimeout(r, 3000));
     }
 
@@ -283,7 +283,7 @@ async function launchSequence() {
         }
 
         createUpdateWindow();
-        sendUpdateText("Mise à jour…");
+        sendUpdateText("Updating…");
     });
 
 
@@ -295,7 +295,7 @@ async function launchSequence() {
 
     autoUpdater.on("update-downloaded", () => {
         console.log("[AUTOUPDATE] Update téléchargée, installation…");
-        sendUpdateText("Installation de la mise à jour…");
+        sendUpdateText("Installing update…");
         setTimeout(() => {
             autoUpdater.quitAndInstall();
         }, 1500);

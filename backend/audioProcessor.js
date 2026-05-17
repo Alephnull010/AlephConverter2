@@ -5,10 +5,10 @@ const ffmpeg = require("ffmpeg-static");
 const freeverb = require("./freeverb");
 
 const PRESETS = {
-  warm:    { slowRate: 0.85, roomSize: 0.4,  damping: 0.2,  wet: 0.44, dry: 0.55, width: 0.5, preDelayMs: 20 },
-  dreamy:  { slowRate: 0.80, roomSize: 0.6,  damping: 0.55, wet: 0.35, dry: 0.50, width: 1.0, preDelayMs: 45 },
-  elegant: { slowRate: 0.90, roomSize: 0.60, damping: 0.72, wet: 0.22, dry: 0.65, width: 0.7, preDelayMs: 12 },
-  liquid:  { slowRate: 0.75, roomSize: 0.90, damping: 0.9,  wet: 0.50, dry: 0.60, width: 1.0, preDelayMs: 40 },
+  warm:    { slowRate: 0.85, roomSize: 0.4,  damping: 0.2,  wet: 0.44, dry: 0.55, width: 0.5, preDelayMs: 20, lfoDepth: 5,  erWet: 0.12 },
+  dreamy:  { slowRate: 0.80, roomSize: 0.6,  damping: 0.55, wet: 0.35, dry: 0.50, width: 1.0, preDelayMs: 45, lfoDepth: 8,  erWet: 0.10 },
+  elegant: { slowRate: 0.90, roomSize: 0.60, damping: 0.72, wet: 0.22, dry: 0.65, width: 0.7, preDelayMs: 12, lfoDepth: 3,  erWet: 0.15 },
+  liquid:  { slowRate: 0.75, roomSize: 0.90, damping: 0.9,  wet: 0.50, dry: 0.60, width: 1.0, preDelayMs: 40, lfoDepth: 10, erWet: 0.08 },
 };
 
 function runFFmpeg(args) {

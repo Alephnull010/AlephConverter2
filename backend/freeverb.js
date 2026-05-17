@@ -22,7 +22,14 @@ const ROOM_OFFSET   = 0.7;
 const ROOM_SCALE    = 0.28;
 const DAMP_SCALE    = 0.4;
 
-// ─── CombFilter ──────────────────────────────────────────────────────────────
+// Fréquences LFO inharmoniques par comb — évite les battements cohérents
+const COMB_LFO_FREQS = [0.40, 0.51, 0.63, 0.70, 0.82, 0.94, 1.05, 1.13];
+
+// Early reflections : taps à ~7–70ms @ 44100 Hz
+const ER_TAPS_SAMPLES = [309, 574, 839, 1191, 1588, 2028, 2514, 3087];
+const ER_GAINS        = [0.60, 0.54, 0.48, 0.40, 0.32, 0.25, 0.20, 0.15];
+
+// ─── CombFilter (statique) ────────────────────────────────────────────────────
 
 class CombFilter {
   constructor(size) {
@@ -40,8 +47,60 @@ class CombFilter {
   process(input) {
     const output = this.buffer[this.pos];
     this.filterStore = output * this.damp2 + this.filterStore * this.damp1;
+    if (Math.abs(this.filterStore) < 1e-10) this.filterStore = 0;
     this.buffer[this.pos] = input + this.filterStore * this.feedback;
     this.pos = (this.pos + 1) % this.buffer.length;
+    return output;
+  }
+}
+
+// ─── ModulatedCombFilter (LFO + HP intégré) ──────────────────────────────────
+
+class ModulatedCombFilter {
+  constructor(size, lfoDepth = 0, lfoFreq = 0.7) {
+    this.lfoDepth    = lfoDepth;
+    this.lfoPhaseInc = lfoFreq * 2 * Math.PI / 44100;
+    this.lfoPhase    = Math.random() * Math.PI * 2;
+    this.maxSize     = size + Math.ceil(lfoDepth) * 2 + 2;
+    this.buffer      = new Float64Array(this.maxSize);
+    this.pos         = 0;
+    this.nominalSize = size;
+    this.feedback    = 0;
+    this.damp1       = 0;
+    this.damp2       = 1;
+    this.filterStore = 0;
+    this.hpStore     = 0;
+    this.hpPrev      = 0;
+    this.hpR         = 0.986; // coupure ~100 Hz @ 44100
+  }
+
+  setFeedback(f) { this.feedback = f; }
+  setDamp(d)     { this.damp1 = d; this.damp2 = 1 - d; }
+
+  process(input) {
+    // Phase incrémentale — évite la perte de précision sur de longs fichiers
+    this.lfoPhase += this.lfoPhaseInc;
+    if (this.lfoPhase > Math.PI * 2) this.lfoPhase -= Math.PI * 2;
+
+    // Lecture avec interpolation linéaire (delay fractionnaire)
+    const delay  = this.nominalSize + Math.sin(this.lfoPhase) * this.lfoDepth;
+    const di     = Math.floor(delay);
+    const frac   = delay - di;
+    const r1     = (this.pos - di + this.maxSize) % this.maxSize;
+    const r2     = (r1 - 1 + this.maxSize) % this.maxSize;
+    const output = this.buffer[r1] * (1 - frac) + this.buffer[r2] * frac;
+
+    // LP (damping)
+    this.filterStore = output * this.damp2 + this.filterStore * this.damp1;
+    if (Math.abs(this.filterStore) < 1e-10) this.filterStore = 0;
+
+    // HP dans la boucle de feedback — coupe les basses accumulées (~100 Hz)
+    const hp = this.filterStore - this.hpPrev + this.hpR * this.hpStore;
+    this.hpPrev  = this.filterStore;
+    this.hpStore = hp;
+
+    this.buffer[this.pos] = input + hp * this.feedback;
+    this.pos = (this.pos + 1) % this.maxSize;
     return output;
   }
 }
@@ -159,6 +218,8 @@ function writeWav(filePath, left, right) {
  * @param {number} opts.dry         0.0–1.0
  * @param {number} opts.width       0.0–1.0
  * @param {number} opts.preDelayMs  ms
+ * @param {number} opts.lfoDepth    samples (0 = pas de modulation)
+ * @param {number} opts.erWet       0.0–1.0 (mix early reflections)
  */
 function processFile(inputWavPath, outputWavPath, opts) {
   const {
@@ -168,6 +229,8 @@ function processFile(inputWavPath, outputWavPath, opts) {
     dry        = 0.40,
     width      = 1.0,
     preDelayMs = 20,
+    lfoDepth   = 0,
+    erWet      = 0.0,
   } = opts;
 
   const scaledRoom = roomSize * ROOM_SCALE + ROOM_OFFSET;
@@ -175,8 +238,10 @@ function processFile(inputWavPath, outputWavPath, opts) {
   const wet1 = wet * (width / 2 + 0.5);
   const wet2 = wet * (1 - width) / 2;
 
-  const combL = COMB_DELAYS_L.map(d => new CombFilter(d));
-  const combR = COMB_DELAYS_L.map(d => new CombFilter(d + STEREO_SPREAD));
+  const combL = COMB_DELAYS_L.map((d, j) =>
+    new ModulatedCombFilter(d,                 lfoDepth, COMB_LFO_FREQS[j]));
+  const combR = COMB_DELAYS_L.map((d, j) =>
+    new ModulatedCombFilter(d + STEREO_SPREAD, lfoDepth, COMB_LFO_FREQS[j] * 1.02));
   for (const c of [...combL, ...combR]) {
     c.setFeedback(scaledRoom);
     c.setDamp(scaledDamp);
@@ -192,6 +257,11 @@ function processFile(inputWavPath, outputWavPath, opts) {
     pdBufR = new Float64Array(preDelaySamples);
     pdPos  = 0;
   }
+
+  // Early reflections ring buffer
+  const erBufSize = ER_TAPS_SAMPLES[ER_TAPS_SAMPLES.length - 1] + 1;
+  const erBufL    = new Float64Array(erBufSize);
+  const erBufR    = new Float64Array(erBufSize);
 
   const { numFrames, left: inL, right: inR } = readWav(inputWavPath);
   const outL = new Float64Array(numFrames);
@@ -211,6 +281,16 @@ function processFile(inputWavPath, outputWavPath, opts) {
       inputR = delayedR;
     }
 
+    // Early reflections
+    erBufL[i % erBufSize] = inputL;
+    erBufR[i % erBufSize] = inputR;
+    let erOutL = 0, erOutR = 0;
+    for (let t = 0; t < ER_TAPS_SAMPLES.length; t++) {
+      const idx  = (i - ER_TAPS_SAMPLES[t] + erBufSize) % erBufSize;
+      erOutL    += erBufL[idx] * ER_GAINS[t];
+      erOutR    += erBufR[idx] * ER_GAINS[t];
+    }
+
     let leftOut  = 0;
     let rightOut = 0;
     for (let j = 0; j < 8; j++) {
@@ -226,22 +306,25 @@ function processFile(inputWavPath, outputWavPath, opts) {
       rightOut = apR[j].process(rightOut);
     }
 
-    outL[i] = leftOut  * wet1 + rightOut * wet2 + inL[i] * dry;
-    outR[i] = rightOut * wet1 + leftOut  * wet2 + inR[i] * dry;
+    outL[i] = leftOut  * wet1 + rightOut * wet2 + erOutL * erWet + inL[i] * dry;
+    outR[i] = rightOut * wet1 + leftOut  * wet2 + erOutR * erWet + inR[i] * dry;
   }
 
-  // Normalisation si le peak dépasse 0.95
-  let peak = 0;
+  // DC blocking
+  let prevL = 0, prevR = 0, dcL = 0, dcR = 0;
   for (let i = 0; i < numFrames; i++) {
-    const p = Math.max(Math.abs(outL[i]), Math.abs(outR[i]));
-    if (p > peak) peak = p;
+    const newDcL = outL[i] - prevL + 0.995 * dcL;
+    const newDcR = outR[i] - prevR + 0.995 * dcR;
+    prevL = outL[i]; prevR = outR[i];
+    dcL = newDcL;    dcR = newDcR;
+    outL[i] = newDcL;
+    outR[i] = newDcR;
   }
-  if (peak > 0.95) {
-    const scale = 0.95 / peak;
-    for (let i = 0; i < numFrames; i++) {
-      outL[i] *= scale;
-      outR[i] *= scale;
-    }
+
+  // Soft clip
+  for (let i = 0; i < numFrames; i++) {
+    outL[i] = Math.tanh(outL[i]);
+    outR[i] = Math.tanh(outR[i]);
   }
 
   writeWav(outputWavPath, outL, outR);
