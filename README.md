@@ -17,10 +17,10 @@ The application is intentionally minimalist, focusing on simplicity and ease of 
 - Supports a wide range of platforms *(full list: [yt-dlp supported sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md))*
 - Automatic **yt-dlp** and **app** update system
 - Optional **Slow + Reverb** audio processing with 4 presets:
-  - `warm` — subtle, intimate room
-  - `dreamy` — wide and floaty
-  - `elegant` — bright and airy
-  - `liquid` — deep, heavily diffused
+  - `warm` — intimate & cozy
+  - `dreamy` — atmospheric & trippy
+  - `elegant` — natural & refined
+  - `liquid` — deep & immersive
 
 ---
 
