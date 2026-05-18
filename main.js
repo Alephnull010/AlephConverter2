@@ -7,6 +7,7 @@ const { autoUpdater } = require("electron-updater");
 
 const { initYtDlp, needsUpdate } = require("./backend/ytDlpManager");
 const { downloadMP3, downloadMP4 } = require("./backend/downloader");
+const { applySlowReverb } = require("./backend/audioProcessor");
 
 const { Worker } = require("worker_threads");
 
@@ -125,7 +126,6 @@ ipcMain.handle("download", async (event, data) => {
         console.log("[AUDIO] slow+reverb direct…");
 
         try {
-            const { applySlowReverb } = require("./backend/audioProcessor.js");
             const output = await applySlowReverb(downloadedPath, slowReverb);
 
             return {
@@ -160,6 +160,10 @@ ipcMain.on("window-control", (event, action) => {
     if (!mainWin) return;
     if (action === "minimize") mainWin.minimize();
     if (action === "close") mainWin.close();
+});
+
+ipcMain.on("splash-close", () => {
+    if (updateWin && !updateWin.isDestroyed()) updateWin.close();
 });
 
 

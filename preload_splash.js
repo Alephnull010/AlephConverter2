@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("splashAPI", {
-    onUpdate: (cb) => ipcRenderer.on("update-text", (_, msg) => cb(msg))
+    onUpdate: (cb) => ipcRenderer.on("update-text", (_, msg) => cb(msg)),
+    closeWindow: () => ipcRenderer.send("splash-close")
 });

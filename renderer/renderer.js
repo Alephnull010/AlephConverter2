@@ -45,7 +45,13 @@ btnDownload.onclick = async () => {
 
     // === FIN ===
     overlayDownload.classList.remove("show");
-    textStatus.innerText = result;
+
+    if (result.success) {
+        const filename = result.final.split(/[\\/]/).pop();
+        textStatus.innerText = "✓ " + filename;
+    } else {
+        textStatus.innerText = "Error: " + (result.error || "Download failed");
+    }
 };
 
 

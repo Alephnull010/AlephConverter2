@@ -42,7 +42,7 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translateX(calc(var(--offset) * 1px));
+            transform: translateX(calc(var(--offset) * 1px - 50%));
             width: 35px;
             height: 7px;
             background: #ffff;
@@ -65,8 +65,8 @@
             }
 
             75% {
-                -webkit-transform: translateX(calc(var(--offset) * 1px)) rotate(90deg);
-                transform: translateX(calc(var(--offset) * 1px)) rotate(90deg);
+                -webkit-transform: translateX(calc(var(--offset) * 1px - 50%)) rotate(90deg);
+                transform: translateX(calc(var(--offset) * 1px - 50%)) rotate(90deg);
             }
 
             80% {
@@ -123,6 +123,22 @@
             margin-top: 18px;
             font-size: 12px;
         }
+
+        #btn-close {
+            display: none;
+            margin-top: 16px;
+            background: transparent;
+            border: 1px solid rgba(0,255,255,0.4);
+            border-radius: 6px;
+            color: #00ffff;
+            font-size: 11px;
+            padding: 4px 14px;
+            cursor: pointer;
+        }
+
+        #btn-close:hover {
+            background: rgba(0,255,255,0.1);
+        }
     </style>
 </head>
 
@@ -141,6 +157,7 @@
     </div>
 
     <p id="text">Updating…</p>
+    <button id="btn-close" onclick="window.splashAPI.closeWindow()">Close</button>
 </div>
 
 <script>
@@ -148,6 +165,9 @@
         window.splashAPI.onUpdate((msg) => {
             const p = document.getElementById("text");
             if (p) p.innerText = msg;
+
+            const isError = msg.toLowerCase().includes("error") || msg.toLowerCase().includes("no internet");
+            document.getElementById("btn-close").style.display = isError ? "inline-block" : "none";
         });
     } else {
         console.warn("splashAPI non disponible dans update.html");

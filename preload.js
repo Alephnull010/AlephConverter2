@@ -19,8 +19,5 @@ contextBridge.exposeInMainWorld("api", {
     }),
 
 
-    // APPEL GENERIQUE
-    download: (data) => ipcRenderer.invoke("download", data),
-
     windowControl: (action) => ipcRenderer.send("window-control", action)
 });

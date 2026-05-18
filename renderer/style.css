@@ -861,6 +861,18 @@ p {
     box-shadow: 0 0 6px #00ffff44;
 }
 
+#status {
+    margin: 6px 0 0 0;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: lighter;
+    color: #bbffff;
+    text-align: center;
+    min-height: 16px;
+    max-width: 370px;
+    word-break: break-all;
+}
+
 
 
 

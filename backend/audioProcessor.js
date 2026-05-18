@@ -1,8 +1,12 @@
 const { execFile } = require("child_process");
 const path = require("path");
 const fs = require("fs");
-const ffmpeg = require("ffmpeg-static");
+const { app } = require("electron");
 const freeverb = require("./freeverb");
+
+const ffmpegBin = app.isPackaged
+    ? path.join(process.resourcesPath, "bin", "ffmpeg.exe")
+    : require("ffmpeg-static");
 
 const PRESETS = {
   warm:    { slowRate: 0.85, roomSize: 0.4,  damping: 0.2,  wet: 0.44, dry: 0.55, width: 0.5, preDelayMs: 20, lfoDepth: 5,  erWet: 0.12 },
@@ -13,7 +17,7 @@ const PRESETS = {
 
 function runFFmpeg(args) {
   return new Promise((resolve, reject) => {
-    execFile(ffmpeg, args, (err, _stdout, stderr) => {
+    execFile(ffmpegBin, args, (err, _stdout, stderr) => {
       if (err) {
         console.error("FFmpeg error:", stderr);
         return reject(err);
