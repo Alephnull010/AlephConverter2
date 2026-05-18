@@ -1,26 +1,35 @@
 # AlephConverter2
 
-**AlephConverter2** is a desktop application designed to convert **URLs into MP3 or MP4 files**.
+**AlephConverter2** is a desktop application for downloading audio and video from URLs.
 
-It supports fast conversions *(depending on your connection speed)* from most audio and video platforms *(SoundCloud, YouTube, Twitch, Reddit, Instagram, Facebook, etc.)*.  
-One of its key strengths is an **automatic yt-dlp update system**, ensuring long-term compatibility.
-
+It supports fast downloads from most platforms *(YouTube, SoundCloud, Twitch, Reddit, Instagram, Facebook, and [many more](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md))*, with optional audio processing.  
 The application is intentionally minimalist, focusing on simplicity and ease of use.
 
 ---
 
 ## Features
 
-- MP3 conversion at best quality (320 kbps via ffmpeg)
-- MP4 conversion at best available quality
-- Full **playlist conversion** support
-- Supports a wide range of platforms *(full list: [yt-dlp supported sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md))*
-- Automatic **yt-dlp** and **app** update system
-- Optional **Slow + Reverb** audio processing with 4 presets:
+### Downloading
+- **Audio / Video mode** — switch between audio and video download with a single click
+- **Audio format selection** — choose between No conversion (keeps original format), MP3, M4A, or FLAC
+- **MP4** video download at best available quality
+- Full **playlist** support
+- Automatic **yt-dlp** update at launch, ensuring long-term platform compatibility
+
+### Audio Processing
+- Optional **Slow + Reverb** effect with 4 presets:
   - `warm` — intimate & cozy
   - `dreamy` — atmospheric & trippy
   - `elegant` — natural & refined
   - `liquid` — deep & immersive
+- Output is encoded as MP3 at 320 kbps regardless of the selected format — quality loss is negligible
+- Processing runs in a background thread — the UI stays responsive throughout
+
+### User Experience
+- **Live phase indicator** — shows the current step: Downloading, Converting, Reverbizing
+- **Cancel button** — abort any download or processing at any time
+- **Click the filename** to reveal the output file in Explorer
+- Handles accented and non-Latin filenames correctly (Arabic, Chinese, Russian, etc.)
 
 ---
 
@@ -29,8 +38,8 @@ The application is intentionally minimalist, focusing on simplicity and ease of 
 - **Electron** — desktop application framework
 - **yt-dlp** — media downloading engine (auto-updated at launch)
 - **ffmpeg** — audio/video encoding and pitch-shifting
-- **Node.js** — backend logic
-- **Freeverb** — reverb engine implemented in pure JavaScript (no DSP dependencies), based on the Jezar at Dreampoint algorithm
+- **Node.js** — backend logic and Worker Threads for non-blocking processing
+- **Freeverb** — reverb engine in pure JavaScript, based on the Jezar at Dreampoint algorithm
 
 ---
 
