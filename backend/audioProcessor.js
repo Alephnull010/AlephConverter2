@@ -1,12 +1,7 @@
 const { execFile } = require("child_process");
 const path = require("path");
 const fs = require("fs");
-const { app } = require("electron");
 const freeverb = require("./freeverb");
-
-const ffmpegBin = app.isPackaged
-    ? path.join(process.resourcesPath, "bin", "ffmpeg.exe")
-    : require("ffmpeg-static");
 
 const PRESETS = {
   warm:    { slowRate: 0.85, roomSize: 0.4,  damping: 0.2,  wet: 0.44, dry: 0.55, width: 0.5, preDelayMs: 20, lfoDepth: 5,  erWet: 0.12 },
@@ -15,19 +10,23 @@ const PRESETS = {
   liquid:  { slowRate: 0.75, roomSize: 0.90, damping: 0.9,  wet: 0.50, dry: 0.60, width: 1.0, preDelayMs: 40, lfoDepth: 10, erWet: 0.08 },
 };
 
-function runFFmpeg(args) {
+function runFFmpeg(args, setCancelFn, ffmpegBin) {
   return new Promise((resolve, reject) => {
-    execFile(ffmpegBin, args, (err, _stdout, stderr) => {
+    let killed = false;
+    const proc = execFile(ffmpegBin, args, (err, _stdout, stderr) => {
+      if (killed) return reject(Object.assign(new Error("cancelled"), { cancelled: true }));
       if (err) {
         console.error("FFmpeg error:", stderr);
         return reject(err);
       }
       resolve();
     });
+    if (setCancelFn) setCancelFn(() => { killed = true; proc.kill(); });
   });
 }
 
-async function applySlowReverb(inputPath, presetName = "warm") {
+async function applySlowReverb(inputPath, presetName = "warm", opts = {}) {
+  const { setCancelFn, ffmpegBin = require("ffmpeg-static") } = opts;
   const settings = PRESETS[presetName] ?? PRESETS.warm;
 
   const dir  = path.dirname(inputPath);
@@ -51,9 +50,10 @@ async function applySlowReverb(inputPath, presetName = "warm") {
       ].join(","),
       "-ac", "2", "-ar", String(sampleRate),
       slowWavPath,
-    ]);
+    ], setCancelFn, ffmpegBin);
 
-    // Étape 2 : reverb Freeverb (Node.js pur)
+    // Étape 2 : reverb Freeverb (synchrone, non annulable)
+    if (setCancelFn) setCancelFn(null);
     freeverb.processFile(slowWavPath, reverbWavPath, settings);
 
     // Étape 3 : encodage MP3 (FFmpeg)
@@ -61,7 +61,7 @@ async function applySlowReverb(inputPath, presetName = "warm") {
       "-y", "-i", reverbWavPath,
       "-b:a", "320k",
       outputPath,
-    ]);
+    ], setCancelFn, ffmpegBin);
 
   } finally {
     if (fs.existsSync(slowWavPath))   fs.unlinkSync(slowWavPath);

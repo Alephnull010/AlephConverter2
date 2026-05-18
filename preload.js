@@ -19,5 +19,7 @@ contextBridge.exposeInMainWorld("api", {
     }),
 
 
-    windowControl: (action) => ipcRenderer.send("window-control", action)
+    windowControl: (action) => ipcRenderer.send("window-control", action),
+    cancelDownload: () => ipcRenderer.send("cancel-download"),
+    openFile: (filePath) => ipcRenderer.invoke("open-file", filePath)
 });

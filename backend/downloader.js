@@ -22,7 +22,6 @@ if (app.isPackaged) {
     ffmpegBinary = ffmpegStatic;
 }
 
-// yt-dlp préfère les slashes
 ffmpegBinary = ffmpegBinary.replace(/\\/g, "/");
 
 console.log("FFmpeg utilisé :", ffmpegBinary);
@@ -30,18 +29,10 @@ console.log("yt-dlp utilisé :", ytDlpExecutable);
 
 
 // -----------------------------------------------------------
-// Utilitaire : vérifie existence fichier final
-// -----------------------------------------------------------
-function ensureFileExists(filepath) {
-    if (!filepath) return false;
-    return fs.existsSync(filepath);
-}
-
-
-// -----------------------------------------------------------
 // TELECHARGEMENT MP3
 // -----------------------------------------------------------
-async function downloadMP3(url, folder) {
+async function downloadMP3(url, folder, opts = {}) {
+    const { setCancelFn } = opts;
     console.log("Downloading MP3…");
 
     const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
@@ -63,28 +54,23 @@ async function downloadMP3(url, folder) {
         console.log("[YTDLP CMD MP3]", ytDlpExecutable, args);
 
         const proc = spawn(ytDlpExecutable, args);
+        let cancelled = false;
         let resolvedPath = "";
+
+        if (setCancelFn) setCancelFn(() => { cancelled = true; proc.kill(); });
 
         proc.stdout.on("data", d => {
             const line = d.toString().trim();
             if (line) resolvedPath = line;
         });
 
-        proc.stderr.on("data", d =>
-            console.log("[YTDLP ERR MP3]", d.toString())
-        );
+        proc.stderr.on("data", d => console.log("[YTDLP ERR MP3]", d.toString()));
 
         proc.on("close", code => {
             console.log("[YTDLP EXIT MP3]", code);
-
-            if (code !== 0) {
-                return reject(new Error("Échec yt-dlp MP3 (exit " + code + ")"));
-            }
-
-            if (!resolvedPath || !fs.existsSync(resolvedPath)) {
-                return reject(new Error("Downloading failed... no .mp3 has been found"));
-            }
-
+            if (cancelled) return reject(Object.assign(new Error("cancelled"), { cancelled: true }));
+            if (code !== 0) return reject(new Error("Échec yt-dlp MP3 (exit " + code + ")"));
+            if (!resolvedPath || !fs.existsSync(resolvedPath)) return reject(new Error("Downloading failed... no .mp3 has been found"));
             console.log("[MP3 FINAL OK] →", resolvedPath);
             resolve(resolvedPath);
         });
@@ -92,12 +78,11 @@ async function downloadMP3(url, folder) {
 }
 
 
-
-
 // -----------------------------------------------------------
 // TELECHARGEMENT MP4
 // -----------------------------------------------------------
-async function downloadMP4(url, folder) {
+async function downloadMP4(url, folder, opts = {}) {
+    const { setCancelFn } = opts;
     console.log("Downloading MP4…");
 
     const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
@@ -118,35 +103,28 @@ async function downloadMP4(url, folder) {
         console.log("[YTDLP CMD MP4]", ytDlpExecutable, args);
 
         const proc = spawn(ytDlpExecutable, args);
+        let cancelled = false;
         let resolvedPath = "";
+
+        if (setCancelFn) setCancelFn(() => { cancelled = true; proc.kill(); });
 
         proc.stdout.on("data", d => {
             const line = d.toString().trim();
             if (line) resolvedPath = line;
         });
 
-        proc.stderr.on("data", d =>
-            console.log("[YTDLP ERR MP4]", d.toString())
-        );
+        proc.stderr.on("data", d => console.log("[YTDLP ERR MP4]", d.toString()));
 
         proc.on("close", code => {
             console.log("[YTDLP EXIT MP4]", code);
-
-            if (code !== 0) {
-                return reject(new Error("Échec yt-dlp MP4 (exit " + code + ")"));
-            }
-
-            if (!resolvedPath || !fs.existsSync(resolvedPath)) {
-                return reject(new Error("Downloading MP4 failed (no MP4 has been found)"));
-            }
-
+            if (cancelled) return reject(Object.assign(new Error("cancelled"), { cancelled: true }));
+            if (code !== 0) return reject(new Error("Échec yt-dlp MP4 (exit " + code + ")"));
+            if (!resolvedPath || !fs.existsSync(resolvedPath)) return reject(new Error("Downloading MP4 failed (no MP4 has been found)"));
             console.log("[MP4 FINAL OK] →", resolvedPath);
             resolve(resolvedPath);
         });
     });
 }
-
-
 
 
 // -----------------------------------------------------------

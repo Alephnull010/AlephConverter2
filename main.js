@@ -1,7 +1,7 @@
 // =======================================================
 //  IMPORTS
 // =======================================================
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
 const path = require("path");
 const { autoUpdater } = require("electron-updater");
 
@@ -17,6 +17,7 @@ const { Worker } = require("worker_threads");
 // =======================================================
 let mainWin = null;
 let updateWin = null;
+let cancelCurrentDownload = null;
 
 const fs = require("fs");
 
@@ -109,51 +110,44 @@ ipcMain.handle("download", async (event, data) => {
     console.log("[DOWNLOAD] format =", format);
     console.log("[DOWNLOAD] slowReverb =", slowReverb);
 
+    cancelCurrentDownload = null;
+
+    const setCancelFn = (fn) => { cancelCurrentDownload = fn; };
+
     // 1) Télécharger le fichier avec yt-dlp
     let downloadedPath;
-
-    if (format === "mp4") {
-        downloadedPath = await downloadMP4(url, folder);
-    } else {
-        // par défaut → mp3
-        downloadedPath = await downloadMP3(url, folder);
+    try {
+        if (format === "mp4") {
+            downloadedPath = await downloadMP4(url, folder, { setCancelFn });
+        } else {
+            downloadedPath = await downloadMP3(url, folder, { setCancelFn });
+        }
+    } catch (err) {
+        cancelCurrentDownload = null;
+        if (err.cancelled) return { success: false, cancelled: true };
+        return { success: false, error: err.message };
     }
 
     console.log("[DOWNLOAD] Fichier téléchargé :", downloadedPath);
 
-    // 2) Si slow+reverb demandé → on traite ce fichier local
+    // 2) Si slow+reverb demandé → on traite dans un Worker Thread
     if (slowReverb) {
-        console.log("[AUDIO] slow+reverb direct…");
-
+        console.log("[AUDIO] slow+reverb via worker…");
         try {
-            const output = await applySlowReverb(downloadedPath, slowReverb);
-
-            return {
-                success: true,
-                original: downloadedPath,
-                final: output,
-                slowReverb: true
-            };
+            const output = await runSlowReverbWorker(downloadedPath, slowReverb, { setCancelFn });
+            cancelCurrentDownload = null;
+            return { success: true, original: downloadedPath, final: output, slowReverb: true };
         } catch (err) {
+            cancelCurrentDownload = null;
             console.log("[AUDIO] Erreur slow+reverb :", err);
-            return {
-                success: false,
-                original: downloadedPath,
-                final: null,
-                error: err.message
-            };
+            if (err.cancelled) return { success: false, cancelled: true };
+            return { success: false, original: downloadedPath, final: null, error: err.message };
         }
     }
 
-
-
     // 3) Sinon on renvoie juste le chemin téléchargé
-    return {
-        success: true,
-        original: downloadedPath,
-        final: downloadedPath,
-        slowReverb: false
-    };
+    cancelCurrentDownload = null;
+    return { success: true, original: downloadedPath, final: downloadedPath, slowReverb: false };
 });
 
 ipcMain.on("window-control", (event, action) => {
@@ -162,9 +156,43 @@ ipcMain.on("window-control", (event, action) => {
     if (action === "close") mainWin.close();
 });
 
+ipcMain.handle("open-file", (_, filePath) => shell.showItemInFolder(filePath));
+
 ipcMain.on("splash-close", () => {
     if (updateWin && !updateWin.isDestroyed()) updateWin.close();
 });
+
+ipcMain.on("cancel-download", () => {
+    if (cancelCurrentDownload) {
+        cancelCurrentDownload();
+        cancelCurrentDownload = null;
+    }
+});
+
+
+// =======================================================
+//  WORKER SLOW+REVERB
+// =======================================================
+function runSlowReverbWorker(inputPath, presetName, { setCancelFn }) {
+    const ffmpegBin = app.isPackaged
+        ? path.join(process.resourcesPath, "bin", "ffmpeg.exe")
+        : require("ffmpeg-static");
+
+    return new Promise((resolve, reject) => {
+        const worker = new Worker(path.join(__dirname, "backend", "audioWorker.js"), {
+            workerData: { inputPath, presetName, ffmpegBin }
+        });
+
+        setCancelFn(() => worker.postMessage("cancel"));
+
+        worker.on("message", (msg) => {
+            if (msg.type === "done")  resolve(msg.output);
+            else if (msg.type === "error") reject(Object.assign(new Error(msg.message), { cancelled: msg.cancelled }));
+        });
+
+        worker.on("error", reject);
+    });
+}
 
 
 // =======================================================
