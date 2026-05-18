@@ -20,6 +20,8 @@ document.querySelectorAll('input[name="mode-radio"]').forEach(radio => {
     });
 });
 
+window.api.onPhase(phase => { dlStatus.innerText = phase + "…"; });
+
 fxSlow.addEventListener("change", () => {
     fxPreset.classList.toggle("visible", fxSlow.checked);
 });

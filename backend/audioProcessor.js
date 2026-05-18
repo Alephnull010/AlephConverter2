@@ -26,7 +26,7 @@ function runFFmpeg(args, setCancelFn, ffmpegBin) {
 }
 
 async function applySlowReverb(inputPath, presetName = "warm", opts = {}) {
-  const { setCancelFn, ffmpegBin = require("ffmpeg-static") } = opts;
+  const { setCancelFn, ffmpegBin = require("ffmpeg-static"), onPhase } = opts;
   const settings = PRESETS[presetName] ?? PRESETS.warm;
 
   const dir  = path.dirname(inputPath);
@@ -41,6 +41,7 @@ async function applySlowReverb(inputPath, presetName = "warm", opts = {}) {
 
   try {
     // Étape 1 : ralentissement + décalage de pitch (FFmpeg)
+    if (onPhase) onPhase("Converting");
     await runFFmpeg([
       "-y", "-i", inputPath,
       "-filter:a", [
@@ -54,6 +55,7 @@ async function applySlowReverb(inputPath, presetName = "warm", opts = {}) {
 
     // Étape 2 : reverb Freeverb (synchrone, non annulable)
     if (setCancelFn) setCancelFn(null);
+    if (onPhase) onPhase("Reverbizing");
     freeverb.processFile(slowWavPath, reverbWavPath, settings);
 
     // Étape 3 : encodage MP3 (FFmpeg)

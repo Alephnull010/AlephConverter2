@@ -189,6 +189,9 @@ function runSlowReverbWorker(inputPath, presetName, { setCancelFn }) {
         worker.on("message", (msg) => {
             if (msg.type === "done")  resolve(msg.output);
             else if (msg.type === "error") reject(Object.assign(new Error(msg.message), { cancelled: msg.cancelled }));
+            else if (msg.type === "phase") {
+                if (mainWin && !mainWin.isDestroyed()) mainWin.webContents.send("dl-phase", msg.phase);
+            }
         });
 
         worker.on("error", reject);

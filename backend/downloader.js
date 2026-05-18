@@ -77,14 +77,16 @@ async function downloadAudio(url, folder, audioFormat = "original", opts = {}) {
 
         console.log("[YTDLP CMD AUDIO]", ytDlpExecutable, args);
 
-        const proc = spawn(ytDlpExecutable, args);
+        const proc = spawn(ytDlpExecutable, args, {
+            env: { ...process.env, PYTHONUTF8: "1" }
+        });
         let cancelled = false;
         let resolvedPath = "";
 
         if (setCancelFn) setCancelFn(() => { cancelled = true; proc.kill(); });
 
         proc.stdout.on("data", d => {
-            const line = d.toString("latin1").trim();
+            const line = d.toString("utf8").trim();
             console.log("[YTDLP STDOUT AUDIO]", line);
             if (line) resolvedPath = line;
         });
@@ -141,14 +143,16 @@ async function downloadVideo(url, folder, opts = {}) {
 
         console.log("[YTDLP CMD VIDEO]", ytDlpExecutable, args);
 
-        const proc = spawn(ytDlpExecutable, args);
+        const proc = spawn(ytDlpExecutable, args, {
+            env: { ...process.env, PYTHONUTF8: "1" }
+        });
         let cancelled = false;
         let resolvedPath = "";
 
         if (setCancelFn) setCancelFn(() => { cancelled = true; proc.kill(); });
 
         proc.stdout.on("data", d => {
-            const line = d.toString("latin1").trim();
+            const line = d.toString("utf8").trim();
             console.log("[YTDLP STDOUT VIDEO]", line);
             if (line) resolvedPath = line;
         });
