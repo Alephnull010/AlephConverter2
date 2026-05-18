@@ -5,6 +5,10 @@
 It supports fast downloads from most platforms *(YouTube, SoundCloud, Twitch, Reddit, Instagram, Facebook, and [many more](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md))*, with optional audio processing.  
 The application is intentionally minimalist, focusing on simplicity and ease of use.
 
+## Download latest
+
+<a href="https://github.com/Alephnull010/AlephConverter2/releases/latest/download/AlephConverter-2-Setup-1.5.1.exe"><img src="https://img.shields.io/badge/Download-Windows-blue?style=for-the-badge&logo=windows" alt="Download"></a>
+
 ---
 
 ## Features
