@@ -61,24 +61,47 @@
 
 <div class="container">
 
-    <h1>
-        Converter
-        <span style="font-style: italic; color: #00ffff; font-size: 14px">.mp3</span>
-        &
-        <span style="font-style: italic; color: #00ffff; font-size: 14px">.mp4</span>
-    </h1>
+    <h1>Converter</h1>
 
     <p>(Youtube, Soundcloud, Instagram, Twitch, TikTok, Facebook, ...)</p>
 
     <input type="text" id="url" autocomplete="off" class="input" placeholder="Paste URL here">
 
-    <label class="switch">
-        <input class="cb" type="checkbox" id="formatSwitch">
-        <span class="toggle">
-            <span class="left">.mp3</span>
-            <span class="right">.mp4</span>
-        </span>
-    </label>
+    <div class="mode-row">
+        <div class="radio-input">
+            <label class="label">
+                <input value="audio" name="mode-radio" id="mode-audio" type="radio" checked>
+                <span class="text">Audio</span>
+            </label>
+            <label class="label">
+                <input value="video" name="mode-radio" id="mode-video" type="radio">
+                <span class="text">Video</span>
+            </label>
+        </div>
+
+        <div class="fmt-options" id="fmtOptions">
+        <label class="fmt-check">
+            <input type="radio" name="fmt-radio" value="original" checked>
+            <span class="fmt-mark"></span>
+            <span class="fmt-text">No conversion</span>
+        </label>
+        <label class="fmt-check">
+            <input type="radio" name="fmt-radio" value="mp3">
+            <span class="fmt-mark"></span>
+            <span class="fmt-text">MP3</span>
+        </label>
+        <label class="fmt-check">
+            <input type="radio" name="fmt-radio" value="m4a">
+            <span class="fmt-mark"></span>
+            <span class="fmt-text">M4A</span>
+        </label>
+        <label class="fmt-check">
+            <input type="radio" name="fmt-radio" value="flac">
+            <span class="fmt-mark"></span>
+            <span class="fmt-text">FLAC</span>
+        </label>
+        </div>
+    </div>
 
     <div class="action-row">
         <button id="download" class="dl">Convert</button>

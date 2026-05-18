@@ -2,7 +2,6 @@ const { spawn } = require("child_process");
 const { app } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const YTDlpWrap = require("yt-dlp-wrap").default;
 const ffmpegStatic = require("ffmpeg-static");
 
 // -----------------------------------------------------------
@@ -27,23 +26,38 @@ ffmpegBinary = ffmpegBinary.replace(/\\/g, "/");
 console.log("FFmpeg utilisé :", ffmpegBinary);
 console.log("yt-dlp utilisé :", ytDlpExecutable);
 
+const AUDIO_EXTS = new Set([".mp3", ".m4a", ".webm", ".opus", ".ogg", ".flac", ".wav", ".aac"]);
+
+// Trouve le fichier le plus récemment modifié dans folder parmi les extensions autorisées,
+// modifié après startTime (avec une tolérance de 3s pour les FS lents / OneDrive).
+function findRecentFile(folder, startTime, allowedExts) {
+    try {
+        return fs.readdirSync(folder)
+            .map(f => path.join(folder, f))
+            .find(f => {
+                if (f.endsWith(".part") || f.endsWith(".ytdl")) return false;
+                if (!allowedExts.has(path.extname(f).toLowerCase())) return false;
+                try { return fs.statSync(f).mtimeMs >= startTime - 3000; }
+                catch { return false; }
+            }) || null;
+    } catch { return null; }
+}
+
 
 // -----------------------------------------------------------
-// TELECHARGEMENT MP3
+// TELECHARGEMENT AUDIO (original / mp3 / m4a / flac)
 // -----------------------------------------------------------
-async function downloadMP3(url, folder, opts = {}) {
+async function downloadAudio(url, folder, audioFormat = "original", opts = {}) {
     const { setCancelFn } = opts;
-    console.log("Downloading MP3…");
+    console.log("Downloading audio —", audioFormat);
 
     const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
+    const startTime = Date.now();
 
     return new Promise((resolve, reject) => {
 
         const args = [
             url,
-            "--extract-audio",
-            "--audio-format", "mp3",
-            "--audio-quality", "0",
             "--no-simulate",
             "-o", outputTemplate,
             "--ffmpeg-location", ffmpegBinary,
@@ -51,7 +65,17 @@ async function downloadMP3(url, folder, opts = {}) {
             "--print", "after_move:filepath"
         ];
 
-        console.log("[YTDLP CMD MP3]", ytDlpExecutable, args);
+        if (audioFormat === "original") {
+            args.push("-f", "bestaudio");
+        } else {
+            args.push(
+                "--extract-audio",
+                "--audio-format", audioFormat,
+                "--audio-quality", "0"
+            );
+        }
+
+        console.log("[YTDLP CMD AUDIO]", ytDlpExecutable, args);
 
         const proc = spawn(ytDlpExecutable, args);
         let cancelled = false;
@@ -60,32 +84,47 @@ async function downloadMP3(url, folder, opts = {}) {
         if (setCancelFn) setCancelFn(() => { cancelled = true; proc.kill(); });
 
         proc.stdout.on("data", d => {
-            const line = d.toString().trim();
+            const line = d.toString("latin1").trim();
+            console.log("[YTDLP STDOUT AUDIO]", line);
             if (line) resolvedPath = line;
         });
 
-        proc.stderr.on("data", d => console.log("[YTDLP ERR MP3]", d.toString()));
+        proc.stderr.on("data", d => console.log("[YTDLP ERR AUDIO]", d.toString()));
 
         proc.on("close", code => {
-            console.log("[YTDLP EXIT MP3]", code);
+            console.log("[YTDLP EXIT AUDIO]", code);
             if (cancelled) return reject(Object.assign(new Error("cancelled"), { cancelled: true }));
-            if (code !== 0) return reject(new Error("Échec yt-dlp MP3 (exit " + code + ")"));
-            if (!resolvedPath || !fs.existsSync(resolvedPath)) return reject(new Error("Downloading failed... no .mp3 has been found"));
-            console.log("[MP3 FINAL OK] →", resolvedPath);
-            resolve(resolvedPath);
+            if (code !== 0) return reject(new Error("Échec yt-dlp audio (exit " + code + ")"));
+
+            console.log("[AUDIO PATH]", resolvedPath);
+            console.log("[AUDIO EXISTS]", fs.existsSync(resolvedPath));
+            console.log("[FOLDER CONTENT]", fs.readdirSync(folder));
+
+            if (resolvedPath && fs.existsSync(resolvedPath)) {
+                console.log("[AUDIO OK primary] →", resolvedPath);
+                return resolve(resolvedPath);
+            }
+
+            // Fallback : fichier modifié depuis le début du téléchargement
+            const fallback = findRecentFile(folder, startTime, AUDIO_EXTS);
+            console.log("[AUDIO FALLBACK]", fallback);
+            if (fallback) return resolve(fallback);
+
+            reject(new Error("Downloading failed... file not found"));
         });
     });
 }
 
 
 // -----------------------------------------------------------
-// TELECHARGEMENT MP4
+// TELECHARGEMENT VIDEO (mp4)
 // -----------------------------------------------------------
-async function downloadMP4(url, folder, opts = {}) {
+async function downloadVideo(url, folder, opts = {}) {
     const { setCancelFn } = opts;
     console.log("Downloading MP4…");
 
     const outputTemplate = path.join(folder, "%(title)s.%(ext)s");
+    const startTime = Date.now();
 
     return new Promise((resolve, reject) => {
 
@@ -100,7 +139,7 @@ async function downloadMP4(url, folder, opts = {}) {
             "--print", "after_move:filepath"
         ];
 
-        console.log("[YTDLP CMD MP4]", ytDlpExecutable, args);
+        console.log("[YTDLP CMD VIDEO]", ytDlpExecutable, args);
 
         const proc = spawn(ytDlpExecutable, args);
         let cancelled = false;
@@ -109,19 +148,31 @@ async function downloadMP4(url, folder, opts = {}) {
         if (setCancelFn) setCancelFn(() => { cancelled = true; proc.kill(); });
 
         proc.stdout.on("data", d => {
-            const line = d.toString().trim();
+            const line = d.toString("latin1").trim();
+            console.log("[YTDLP STDOUT VIDEO]", line);
             if (line) resolvedPath = line;
         });
 
-        proc.stderr.on("data", d => console.log("[YTDLP ERR MP4]", d.toString()));
+        proc.stderr.on("data", d => console.log("[YTDLP ERR VIDEO]", d.toString()));
 
         proc.on("close", code => {
-            console.log("[YTDLP EXIT MP4]", code);
+            console.log("[YTDLP EXIT VIDEO]", code);
             if (cancelled) return reject(Object.assign(new Error("cancelled"), { cancelled: true }));
             if (code !== 0) return reject(new Error("Échec yt-dlp MP4 (exit " + code + ")"));
-            if (!resolvedPath || !fs.existsSync(resolvedPath)) return reject(new Error("Downloading MP4 failed (no MP4 has been found)"));
-            console.log("[MP4 FINAL OK] →", resolvedPath);
-            resolve(resolvedPath);
+
+            console.log("[VIDEO PATH]", resolvedPath);
+            console.log("[VIDEO EXISTS]", fs.existsSync(resolvedPath));
+
+            if (resolvedPath && fs.existsSync(resolvedPath)) {
+                console.log("[VIDEO OK primary] →", resolvedPath);
+                return resolve(resolvedPath);
+            }
+
+            const fallback = findRecentFile(folder, startTime, new Set([".mp4"]));
+            console.log("[VIDEO FALLBACK]", fallback);
+            if (fallback) return resolve(fallback);
+
+            reject(new Error("Downloading MP4 failed (no MP4 has been found)"));
         });
     });
 }
@@ -129,6 +180,6 @@ async function downloadMP4(url, folder, opts = {}) {
 
 // -----------------------------------------------------------
 module.exports = {
-    downloadMP3,
-    downloadMP4
+    downloadAudio,
+    downloadVideo
 };

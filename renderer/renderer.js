@@ -1,15 +1,24 @@
-const btnDownload = document.getElementById("download");
-const btnMinimize = document.getElementById("minimize");
-const btnClose    = document.getElementById("close");
-const btnCancel   = document.getElementById("btn-cancel");
-const inputUrl    = document.getElementById("url");
-const switchFormat = document.getElementById("formatSwitch");
-const textStatus  = document.getElementById("status");
-const dlStatus    = document.getElementById("dl-status");
-const overlay     = document.getElementById("overlay");
+const btnDownload     = document.getElementById("download");
+const btnMinimize     = document.getElementById("minimize");
+const btnClose        = document.getElementById("close");
+const btnCancel       = document.getElementById("btn-cancel");
+const inputUrl        = document.getElementById("url");
+const textStatus      = document.getElementById("status");
+const dlStatus        = document.getElementById("dl-status");
+const overlay         = document.getElementById("overlay");
 const overlayDownload = document.getElementById("overlayDownload");
-const fxSlow   = document.getElementById("fxSlow");
-const fxPreset = document.getElementById("fxPreset");
+const fxSlow          = document.getElementById("fxSlow");
+const fxPreset        = document.getElementById("fxPreset");
+const fxWrapper       = document.querySelector(".fx-wrapper");
+const fmtOptions = document.getElementById("fmtOptions");
+
+document.querySelectorAll('input[name="mode-radio"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+        const isAudio = radio.value === "audio";
+        fmtOptions.classList.toggle("hidden", !isAudio);
+        fxWrapper.style.visibility = isAudio ? "" : "hidden";
+    });
+});
 
 fxSlow.addEventListener("change", () => {
     fxPreset.classList.toggle("visible", fxSlow.checked);
@@ -25,7 +34,6 @@ btnDownload.onclick = async () => {
     const url = inputUrl.value.trim();
     if (!url) return;
 
-    // === Overlay sélection dossier ===
     overlay.classList.add("show");
     const folder = await window.api.chooseFolder();
     overlay.classList.remove("show");
@@ -35,23 +43,23 @@ btnDownload.onclick = async () => {
         return;
     }
 
-    // === Overlay téléchargement ===
     dlStatus.innerText = "Downloading…";
     btnCancel.disabled = false;
     btnCancel.innerText = "Cancel";
     overlayDownload.classList.add("show");
 
     const slowReverb = fxSlow.checked ? fxPreset.value : null;
-    const format = switchFormat.checked ? "mp4" : "mp3";
+
+    const currentMode = document.querySelector('input[name="mode-radio"]:checked').value;
 
     let result;
-    if (format === "mp3") {
-        result = await window.api.downloadMP3(url, folder, slowReverb);
+    if (currentMode === "video") {
+        result = await window.api.downloadVideo(url, folder);
     } else {
-        result = await window.api.downloadMP4(url, folder, slowReverb);
+        const audioFormat = document.querySelector('input[name="fmt-radio"]:checked').value;
+        result = await window.api.downloadAudio(url, folder, audioFormat, slowReverb);
     }
 
-    // === FIN ===
     overlayDownload.classList.remove("show");
 
     if (result.cancelled) {
@@ -69,7 +77,6 @@ btnDownload.onclick = async () => {
         textStatus.classList.remove("clickable");
     }
 };
-
 
 textStatus.onclick = () => {
     if (textStatus.dataset.path) window.api.openFile(textStatus.dataset.path);

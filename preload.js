@@ -4,20 +4,20 @@ contextBridge.exposeInMainWorld("api", {
 
     chooseFolder: () => ipcRenderer.invoke("choose-folder"),
 
-    downloadMP3: (url, folder, slowReverb) => ipcRenderer.invoke("download", {
+    downloadAudio: (url, folder, audioFormat, slowReverb) => ipcRenderer.invoke("download", {
         url,
-        format: "mp3",
+        type: "audio",
+        audioFormat,
         folder,
         slowReverb
     }),
 
-    downloadMP4: (url, folder, slowReverb) => ipcRenderer.invoke("download", {
+    downloadVideo: (url, folder) => ipcRenderer.invoke("download", {
         url,
-        format: "mp4",
+        type: "video",
         folder,
-        slowReverb
+        slowReverb: null
     }),
-
 
     windowControl: (action) => ipcRenderer.send("window-control", action),
     cancelDownload: () => ipcRenderer.send("cancel-download"),

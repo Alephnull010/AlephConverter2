@@ -6,7 +6,7 @@ const path = require("path");
 const { autoUpdater } = require("electron-updater");
 
 const { initYtDlp, needsUpdate } = require("./backend/ytDlpManager");
-const { downloadMP3, downloadMP4 } = require("./backend/downloader");
+const { downloadAudio, downloadVideo } = require("./backend/downloader");
 const { applySlowReverb } = require("./backend/audioProcessor");
 
 const { Worker } = require("worker_threads");
@@ -44,7 +44,7 @@ console.log = (...args) => {
 function createMainWindow() {
     mainWin = new BrowserWindow({
         width: 500,
-        height: 430,
+        height: 435,
         resizable: false,
         frame: false,
         webPreferences: {
@@ -103,11 +103,12 @@ ipcMain.handle("choose-folder", async () => {
 });
 
 ipcMain.handle("download", async (event, data) => {
-    const { url, folder, format, slowReverb } = data;
+    const { url, folder, type, audioFormat, slowReverb } = data;
 
     console.log("[DOWNLOAD] url =", url);
     console.log("[DOWNLOAD] folder =", folder);
-    console.log("[DOWNLOAD] format =", format);
+    console.log("[DOWNLOAD] type =", type);
+    console.log("[DOWNLOAD] audioFormat =", audioFormat);
     console.log("[DOWNLOAD] slowReverb =", slowReverb);
 
     cancelCurrentDownload = null;
@@ -117,10 +118,10 @@ ipcMain.handle("download", async (event, data) => {
     // 1) Télécharger le fichier avec yt-dlp
     let downloadedPath;
     try {
-        if (format === "mp4") {
-            downloadedPath = await downloadMP4(url, folder, { setCancelFn });
+        if (type === "video") {
+            downloadedPath = await downloadVideo(url, folder, { setCancelFn });
         } else {
-            downloadedPath = await downloadMP3(url, folder, { setCancelFn });
+            downloadedPath = await downloadAudio(url, folder, audioFormat, { setCancelFn });
         }
     } catch (err) {
         cancelCurrentDownload = null;
