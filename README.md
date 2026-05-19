@@ -18,7 +18,7 @@ The application is intentionally minimalist, focusing on simplicity and ease of 
 - **Audio format selection** — choose between No conversion (keeps original format), MP3, M4A, or FLAC
 - **MP4** video download at best available quality
 - Full **playlist** support
-- Automatic **yt-dlp** update at launch, ensuring long-term platform compatibility
+- Automatic **yt-dlp** update, ensuring long-term platform compatibility
 
 ### Audio Processing
 - Optional **Slow + Reverb** effect with 4 presets:
@@ -27,13 +27,6 @@ The application is intentionally minimalist, focusing on simplicity and ease of 
   - `elegant` — natural & refined
   - `liquid` — deep & immersive
 - Output is encoded as MP3 at 320 kbps regardless of the selected format — quality loss is negligible
-- Processing runs in a background thread — the UI stays responsive throughout
-
-### User Experience
-- **Live phase indicator** — shows the current step: Downloading, Converting, Reverbizing
-- **Cancel button** — abort any download or processing at any time
-- **Click the filename** to reveal the output file in Explorer
-- Handles accented and non-Latin filenames correctly (Arabic, Chinese, Russian, etc.)
 
 ---
 
@@ -47,7 +40,7 @@ The application is intentionally minimalist, focusing on simplicity and ease of 
 
 ---
 
-## Application Preview
+## Application Preview (old UI)
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/8717da64-3fcd-4bbd-9ab7-098eb6035b0b" width="50%" alt="AlephConverter2 interface">
