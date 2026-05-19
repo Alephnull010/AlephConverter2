@@ -28,7 +28,7 @@ The application is intentionally minimalist, focusing on simplicity and ease of 
   - `liquid` — deep & immersive
 - Output is encoded as MP3 at 320 kbps regardless of the selected format — quality loss is negligible
 
-If you find this tool useful, a ⭐ motivates me a lot!
+> If you find this tool useful, a ⭐ motivates me a lot!
 ---
 
 ## Stack
