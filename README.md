@@ -41,7 +41,7 @@ The application is intentionally minimalist, focusing on simplicity and ease of 
 
 ---
 
-## Application Preview (old UI)
+## Application UI
 
 
 <p align="center">
