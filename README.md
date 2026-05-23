@@ -43,10 +43,11 @@ The application is intentionally minimalist, focusing on simplicity and ease of 
 
 ## Application UI
 
-
 <p align="center">
-  <img width="70%" alt="aleph_converter_2_UI" src="https://github.com/user-attachments/assets/8ce1b1be-e321-4ff9-9669-bea66b99cc4a" />
+  <img width="49%" alt="aleph_converter_ui" src="https://github.com/user-attachments/assets/7fac81e7-04f1-48aa-bf3a-15c0c156a097" />
+  <img width="49%" alt="aleph_converter_ui2" src="https://github.com/user-attachments/assets/6a075eb3-3c78-46a3-9cd5-e70123cb9a6c" />
 </p>
+
 
 ---
 
